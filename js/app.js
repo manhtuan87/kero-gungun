@@ -324,7 +324,7 @@
     else {
       var nm = nameOf(u), line = C.checkedToday(save) ? pick(DATA.LINES.title) : DATA.LINES.checkFirst;
       text = nameHead(nm) + hello + '\n' + line;
-      parts = [nameHead(nm), hello, line];   // the name is read by the phone, the rest are clips (in Japanese)
+      parts = [hello, line];   // (the name is only written: ケロはかせ does not say it, the phone's voice for it sounded out of place)
     }
     setTimeout(function () {
       if (screen !== 'title') return;
@@ -798,7 +798,7 @@
       var core = R.out.newBest ? pick(DATA.LINES.best) : R.out.firstPlay ? pick(DATA.LINES.first1) : R.rank >= 4 ? pick(DATA.LINES.good) : pick(DATA.LINES.soso);
       $('r-badge').textContent = R.out.newBest ? L('じこベスト！') : '';
       $('r-say').textContent = L('ケロはかせ「{t}」', { t: nameHead(who) + core });
-      speak([L('{animal}！', { animal: name }), nameHead(who), core]);
+      speak([L('{animal}！', { animal: name }), core]);
       confetti(R.rank >= 5 ? 60 : 24);
       var got = document.querySelectorAll('#r-stars i');
       for (var i = 0; i < R.out.stars; i++) {
@@ -1044,7 +1044,7 @@
       S.play('fanfare');
       confetti(40);
       var what = check.out.age != null ? L('のうねんれいは {age}さい！', { age: check.out.age }) : L('きょうの あたまは {animal}！', { animal: animalName(check.out.rank) });
-      speak([what, nameHead(who), core]);
+      speak([what, core]);
     }
     if (check.shown && !check.overlays && check.t >= 2.9) { check.overlays = true; queueGains(check.out, false); }
   }
