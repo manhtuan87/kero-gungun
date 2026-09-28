@@ -75,9 +75,9 @@
             if (on && hit) A.maru(c, q.x + q.s / 2, q.y + q.s / 2, q.s * 0.36, 0.9);
             else if (on) A.batsu(c, q.x + q.s / 2, q.y + q.s / 2, q.s * 0.3, 0.9);
             else if (hit) { c.save(); c.globalAlpha = 0.5; A.maru(c, q.x + q.s / 2, q.y + q.s / 2, q.s * 0.36); c.restore(); }
-          } else if (on) {
-            D.circle(c, q.x + q.s - 12, q.y + 12, 11); D.paint(c, '#ff6fa8', D.INK, 2);
-            A.stroke(c, [q.x + q.s - 17, q.y + 12, q.x + q.s - 13, q.y + 16, q.x + q.s - 7, q.y + 8], 2.6, '#fff');
+          } else if (on) {   // (chosen: ○ or × at once)
+            if (hit) A.maru(c, q.x + q.s / 2, q.y + q.s / 2, q.s * 0.36, 0.9);
+            else A.batsu(c, q.x + q.s / 2, q.y + q.s / 2, q.s * 0.3, 0.9);
           }
         });
       },
@@ -87,9 +87,9 @@
           var cl = gridCells[i];
           if (q.x < cl.x || q.y < cl.y || q.x > cl.x + cl.s || q.y > cl.y + cl.s) continue;
           var k = chosen.indexOf(i);
-          if (k >= 0) { chosen.splice(k, 1); api.sfx('select'); if (g.targets.indexOf(g.grid[i]) >= 0) hits--; else wrong--; return; }
-          chosen.push(i); api.sfx('select'); api.hand(null);
-          if (g.targets.indexOf(g.grid[i]) >= 0) hits++; else wrong++;
+          if (k >= 0) return;   // (a choice is final: its sound has told whether it was right)
+          chosen.push(i); api.hand(null);
+          if (g.targets.indexOf(g.grid[i]) >= 0) { hits++; api.sfx('ok'); } else { wrong++; api.sfx('ng'); }
           if (chosen.length >= g.targets.length) finish();
           return;
         }

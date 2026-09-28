@@ -48,7 +48,6 @@
       hero.fx = hero.x; hero.fy = hero.y;
       hero.x = to.x; hero.y = to.y; hero.k = 0;
       hero.mode = 'happy'; hero.mt = 0;
-      api.sfx('hop');
     }
     // The whole order at the top (two rows when it is long): the done ones turn green, the next one glows.
     function drawOrder(c, clock) {
@@ -121,6 +120,7 @@
           if (pd.i === nextI) {
             pd.done = true; nextI++; since = 0; api.hand(null);
             hop(pd);
+            if (nextI < pads.length) api.sfx('ok');   // (the last one: the ピンポーン of api.ok below)
             api.progress(nextI, pads.length);
             if (nextI >= pads.length) { phase = 'clear'; pt = 0; api.ok(180, 330, 70); api.burst(pd.x, pd.y, 10, '#fff6a8'); }
           } else {

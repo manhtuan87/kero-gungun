@@ -99,7 +99,7 @@
           var sp = SPOTS[cur.nums.length][i], dx = q.x - sp[0], dy = q.y - sp[1];
           if (dx * dx + dy * dy > 46 * 46) continue;
           if (cur.nums[i] === Math.max.apply(null, cur.nums)) {
-            stats.touch++; api.sfx('select'); api.mark('maru', sp[0], sp[1], 30); pops.push({ x: sp[0], y: sp[1], t: 0 });
+            stats.touch++; api.sfx('ok'); api.mark('maru', sp[0], sp[1], 30); pops.push({ x: sp[0], y: sp[1], t: 0 });
             cur = null; gapT = 0.3;   // a short breath before the next numbers
           } else {
             stats.miss++; api.ng(sp[0], sp[1], 26); cur.shake = i; cur.t = 0;

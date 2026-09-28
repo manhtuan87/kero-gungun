@@ -89,7 +89,7 @@
       if (grid[idx] !== 0) return;
       if (Q.sol[idx] === val) {
         grid[idx] = val; pops[idx] = 0; since = 0; held = 0; pal.hint(-1);
-        api.sfx('place');
+        if (grid.indexOf(0) >= 0) api.sfx('ok');   // (the last cell: api.ok below)
         if (grid.indexOf(0) < 0) {
           phase = 'done'; pt = 0;
           api.ok(180, gy + cell * size / 2, 80);

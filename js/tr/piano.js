@@ -71,6 +71,7 @@
       } else {
         mistakes++;
         shake[k] = 0.3;
+        api.sfx('ng');   // (the key still sounds; a right key's own note is its good sound)
       }
     }
     function startAuto() {

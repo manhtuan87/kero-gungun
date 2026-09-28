@@ -54,7 +54,7 @@
       if (Q.tiles[i] === Q.word.charAt(filled)) {
         used.push(i); filled++; since = 0;
         ch.mark(i, 'gone'); ch.hint(-1);
-        api.sfx('place');
+        if (filled < Q.word.length) api.sfx('ok');   // (the last letter: api.ok below)
         if (filled >= Q.word.length) {
           phase = 'done'; pt = 0;
           api.ok(180, 190, 76);

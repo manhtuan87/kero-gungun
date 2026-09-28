@@ -56,7 +56,7 @@
       if (e.n === order[nextI]) {
         e.state = 'hatched'; e.hatchT = 0;
         chicks.push({ x: e.x, y: e.y - 6, vy: -110, t: 0, shell: e.kind });
-        api.sfx('crack', nextI + 1);
+        if (nextI + 1 < eggs.length) api.sfx('ok');   // (the last egg: api.ok below)
         api.burst(e.x, e.y, 6, '#fff6a8');
         nextI++; since = 0; api.hand(null);
         if (nextI >= eggs.length) {
