@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><title>gallery</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap">
+<style>html, body { margin: 0; background: #fff8ee; } canvas { display: block; }</style></head>
+<body><canvas id="c"></canvas>
+<script src="../js/draw.js"></script><script src="../js/data.js"></script><script src="../js/art.js"></script><script src="../js/pics.js"></script>
+<script>
+// Every picture of the game on one page, for checking the drawings.  ?t=1.2 sets the animation time.
+var q = new URLSearchParams(location.search), T = +q.get('t') || 0, anim = q.get('anim') === '1';
+var c = document.getElementById('c'), g = c.getContext('2d');
+var W = 1000, H = 1500;
+c.width = W; c.height = H; c.style.width = W + 'px'; c.style.height = H + 'px';
+function label(s, x, y) { g.save(); g.font = '800 14px "M PLUS Rounded 1c", sans-serif'; g.fillStyle = '#5a3825'; g.textAlign = 'center'; g.fillText(s, x, y); g.restore(); }
+function draw(t) {
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.fillStyle = '#fff8ee'; g.fillRect(0, 0, W, H);
+  // animals: standing and running
+  Data.ANIMALS.forEach(function (a, i) {
+    var x = 70 + i * 135;
+    Art.animal(g, a.id, x, 130, 1, t, {});
+    Art.animal(g, a.id, x, 270, 0.8, t, { run: true });
+    label((i + 1) + ' ' + a.name, x, 150);
+  });
+  // ケロはかせ and friends
+  Draw.critter(g, { x: 90, y: 380, t: t, kind: 'frog', look: null, mode: 'idle', wear: Art.hakase });
+  Draw.critter(g, { x: 220, y: 380, t: t, kind: 'frog', look: null, mode: 'happy', mt: t % 1, wear: Art.hakase, noSeat: true });
+  // janken
+  [0, 1, 2].forEach(function (k) { Art.jankenHand(g, k, 340 + k * 90, 380, 0.9); Art.jankenHand(g, k, 620 + k * 90, 380, 0.9, '#9ee07a'); });
+  // stamps
+  Art.stamp(g, 900, 330, 42, 'kero'); Art.stamp(g, 900, 430, 42, 'hana');
+  // pictures
+  Data.PICS.forEach(function (p, i) {
+    var col = i % 9, row = Math.floor(i / 9), x = 60 + col * 110, y = 560 + row * 130;
+    g.fillStyle = '#fff'; g.fillRect(x - 50, y - 50, 100, 100);
+    Pics.draw(g, p.id, x, y, 90, t);
+    label(p.name, x, y + 66);
+  });
+  // shared scene pieces
+  var y0 = 1000;
+  Art.balloon(g, 60, y0 + 40, 32, Art.BALLOONS[0], t, 7);
+  Art.balloon(g, 140, y0 + 40, 24, Art.BALLOONS[2], t, 12);
+  Art.pad(g, 240, y0 + 40, 34, 3, 0, t); Art.pad(g, 330, y0 + 40, 34, 'あ', 1, t);
+  Art.house(g, 520, y0 + 150, 0.8, (Math.sin(t) + 1) / 2, 0);
+  Art.house(g, 720, y0 + 150, 0.8, 0, 0.8, function (h) { Draw.chick(h, -30, -20, 1.2, t, {}); Draw.chick(h, 10, -20, 1.2, t, { happy: true }); });
+  Art.bird(g, 60, y0 + 190, 1.3, t, {}); Art.bird(g, 120, y0 + 190, 1.3, t, { flap: t * 20, color: Art.BIRDS[1], dir: -1 });
+  Art.butterfly(g, 180, y0 + 190, 1.2, t); Art.ladybug(g, 240, y0 + 195, 1.3); Art.bee(g, 300, y0 + 190, 1.3, t);
+  Art.cube(g, 860, y0 + 120, 44, '#ff9fb8'); Art.cube(g, 860, y0 + 76, 44, '#8bd86a'); Art.cube(g, 904, y0 + 120, 44, '#66c3ff');
+  Art.rock(g, 60, y0 + 300, 1.2); Art.mushroom(g, 130, y0 + 300, 1.2);
+  Art.chalkboard(g, 180, y0 + 230, 300, 150);
+  Art.text(g, '3 + 4 = ?', 330, y0 + 300, 44, '#fff', { stroke: false });
+  Art.numberEgg(g, 0, 540, y0 + 300, 30, 3, 0, t); Art.numberEgg(g, 2, 610, y0 + 300, 30, 4, 0.3, t); Art.numberEgg(g, 3, 680, y0 + 300, 30, 5, 1, t);
+  Art.maru(g, 780, y0 + 300, 30); Art.batsu(g, 870, y0 + 300, 26);
+  Art.card(g, 740, y0 + 360, 120, 110);
+}
+function loop(now) { draw(anim ? now / 1000 : T); if (anim) requestAnimationFrame(loop); }
+document.fonts.ready.then(function () { requestAnimationFrame(loop); document.title = 'ready'; });
+</script></body></html>
