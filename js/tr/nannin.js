@@ -77,7 +77,7 @@
       phase = 'reveal'; pt = 0;
       verdict = v === Q.answer;
       if (verdict) { correct++; api.ok(180, 300, 64); }
-      else { api.ng(180, 300, 54); api.say('こたえは ' + Q.answer + 'にん だよ', false); }
+      else { api.ng(180, 300, 54); api.say(L('こたえは {n}にん だよ', { n: Q.answer }), false); }
       api.progress(qi + 1, qs.length);
     }
 
@@ -110,7 +110,7 @@
         if (phase === 'watch' && pt > Q.end) {
           phase = 'ask'; pt = 0;
           pad.enable(true);
-          api.speak('おうちの なかに なんにん いるかな？');
+          api.speak(L('おうちの なかに なんにん いるかな？'));
           if (p.practice) pad.hint(Q.answer);
         } else if (phase === 'reveal' && pt > 2.2) { pad.hint(null); api.hush(); next(); }
       },

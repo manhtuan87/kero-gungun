@@ -1,5 +1,6 @@
 /* ケロちゃん あたま ぐんぐん in every language: [Tiếng Việt, English, 한국어] (see js/lang.js).
-   The voice (VOICEVOX:ずんだもん) speaks Japanese only, so the other languages are text only. */
+   ケロはかせ speaks Japanese with recorded clips (VOICEVOX:ずんだもん); in the other languages the phone reads
+   these lines aloud (js/voice.js), so the lines he only says (never shown) are here too. */
 Lang.add({
   // ---------------------------------------------------------------- title, menus
   'ケロちゃん あたま ぐんぐん': ['Kero Luyện Não', 'Kero Brain Boost', '케로 두뇌 쑥쑥'],
@@ -26,6 +27,7 @@ Lang.add({
   'つぎの つき': ['Tháng sau', 'Next month', '다음 달'],
   'なまえなし': ['Chưa có tên', 'No name', '이름 없음'],
   'こえ：{credit}': ['Giọng nói: {credit}', 'Voice: {credit}', '목소리: {credit}'],
+  '日本語の こえ：{credit}': ['Giọng tiếng Nhật: {credit}', 'Japanese voice: {credit}', '일본어 목소리: {credit}'],
   'おとな': ['Người lớn', 'Grown-up', '어른'],
   'こども': ['Trẻ em', 'Child', '어린이'],
   '{name}、': ['{name} ơi, ', '{name}, ', '{name}, '],
@@ -92,6 +94,8 @@ Lang.add({
   'おうちの なかに なんにん？': ['Trong nhà có mấy người?', 'How many in the house?', '집 안에 몇 명?'],
   'こたえは {n}にん': ['Đáp án: {n} người', 'The answer is {n}', '정답은 {n}명'],
   'よく みててね！': ['Nhìn kỹ nhé!', 'Watch carefully!', '잘 봐!'],
+  'おうちの なかに なんにん いるかな？': ['Trong nhà có mấy người nhỉ?', 'How many are in the house?', '집 안에 몇 명 있을까?'],
+  'こたえは {n}にん だよ': ['Đáp án là {n} người nhé', 'The answer is {n}', '정답은 {n}명이야'],
   'この えを おぼえてね': ['Nhớ hình này nhé', 'Remember this picture', '이 그림을 기억해'],
   'よく みてね': ['Nhìn kỹ nhé', 'Look carefully', '잘 봐'],
   'いまの え は どれ？': ['Hình bây giờ là hình nào?', 'Which is the picture now?', '지금 그림은 뭘까?'],
@@ -106,6 +110,9 @@ Lang.add({
   'かって': ['Thắng', 'Win', '이겨'],
   'まけて': ['Thua', 'Lose', '져'],
   'あいこ': ['Hòa', 'Draw', '비겨'],
+  'こんどは かって！': ['Giờ thì thắng nhé!', 'Now win!', '이번엔 이겨!'],
+  'こんどは まけて！': ['Giờ thì thua nhé!', 'Now lose!', '이번엔 져!'],
+  'こんどは あいこ！': ['Giờ thì hòa nhé!', 'Now draw!', '이번엔 비겨!'],
   'じゃん けん…': ['Oẳn tù tì…', 'Rock, paper…', '가위바위…'],
   'この ことばを みてね': ['Nhìn chữ này nhé', 'Look at this word', '이 말을 잘 봐'],
   'ことばが かわったよ！': ['Chữ đổi rồi!', 'The word changed!', '말이 바뀌었어!'],
@@ -114,11 +121,14 @@ Lang.add({
   'ことりは なんわ？': ['Có mấy chú chim?', 'How many birds?', '새는 몇 마리?'],
   'こたえは {n}わ': ['Đáp án: {n} con', 'The answer is {n}', '정답은 {n}마리'],
   'えの なまえを つくろう！': ['Ghép tên của hình nào!', "Spell the picture's name!", '그림의 이름을 만들자!'],
+  '{word}！': ['{word}!', '{word}!', '{word}!'],
   'たて・よこ・へやに おなじ たまごは 1つ！': ['Mỗi hàng, cột, phòng: mỗi loại trứng một quả!', 'One of each egg in every row, column and room!', '가로·세로·방마다 같은 알은 하나!'],
   'あいてる マスを タッチ！': ['Chạm vào ô trống!', 'Tap an empty square!', '빈칸을 터치!'],
   'おぼえた！': ['Nhớ rồi!', 'Got it!', '기억했어!'],
   'この えを おぼえてね！': ['Nhớ các hình này nhé!', 'Remember these pictures!', '이 그림들을 기억해!'],
   'みた えを えらんでね（{a} / {b}）': ['Chọn hình đã thấy ({a} / {b})', 'Pick what you saw ({a} / {b})', '본 그림을 골라 ({a} / {b})'],
+  'えを よく おぼえてね': ['Nhớ kỹ các hình nhé', 'Remember the pictures well', '그림을 잘 기억해'],
+  'さっき みた えを {n}まい えらんでね': ['Chọn {n} hình vừa thấy nhé', 'Pick the {n} pictures you saw', '아까 본 그림 {n}장을 골라'],
   'びょう': ['giây', 's', '초'],
 
   // ---------------------------------------------------------------- results
@@ -171,6 +181,8 @@ Lang.add({
   'まいにち やると ぐんぐん のびるよ': ['Chơi mỗi ngày là tiến bộ nhanh lắm', "Play every day and you'll grow fast!", '매일 하면 쑥쑥 늘어!'],
   'はじめてだから れんしゅう しよう！': ['Lần đầu nên luyện tập trước nhé!', "It's your first time, so let's practise!", '처음이니까 연습해 보자!'],
   'じょうず！ つぎは ほんばん だよ！': ['Giỏi lắm! Tiếp theo là chơi thật nhé!', 'Well done! Next is the real one!', '잘했어! 다음은 진짜야!'],
+  'スタンプを あつめると あそべるよ': ['Sưu tầm con dấu là chơi được nhé', 'Collect stamps to play this', '도장을 모으면 할 수 있어'],
+  'ケロはかせが しゃべるよ！': ['Giáo sư Kero sẽ nói nhé!', 'Dr. Kero will talk!', '케로 박사가 말할게!'],
 
   // ---------------------------------------------------------------- overlays
   'やったね！': ['Làm được rồi!', 'You did it!', '해냈다!'],
@@ -191,6 +203,11 @@ Lang.add({
 
   // ---------------------------------------------------------------- the daily check
   'きょうの あたまチェック': ['Kiểm tra trí não hôm nay', "Today's Brain Check", '오늘의 두뇌 체크'],
+  'きょうの あたまチェック！ 3つの テストを するよ': ['Kiểm tra trí não hôm nay! Mình làm 3 bài nhé', "Today's brain check! We'll do 3 tests", '오늘의 두뇌 체크! 테스트 3개를 할 거야'],
+  'きょうは もう チェック したよ。 れんしゅうで やってみよう': ['Hôm nay đã kiểm tra rồi. Chơi luyện tập nhé', "You've already checked today. Let's practise", '오늘은 이미 체크했어. 연습으로 해 보자'],
+  'よく できました！ つぎは {name}': ['Giỏi lắm! Tiếp theo là {name}', 'Well done! Next is {name}', '잘했어! 다음은 {name}'],
+  'のうねんれいは {age}さい！': ['Tuổi não là {age}!', 'Your brain age is {age}!', '두뇌 나이는 {age}세!'],
+  'きょうの あたまは {animal}！': ['Trí não hôm nay là {animal}!', "Today's brain: {animal}!", '오늘의 두뇌는 {animal}!'],
   '3つの テストで\nきょうの あたまを しらべるよ！': ['3 bài kiểm tra\nxem trí não hôm nay thế nào!', '3 tests to see\nhow your brain is today!', '3가지 테스트로\n오늘의 두뇌를 알아봐!'],
   'きょうは もう チェック したよ。\nれんしゅうで やってみよう！': ['Hôm nay đã kiểm tra rồi.\nChơi luyện tập nhé!', "You've already checked today.\nLet's practise!", '오늘은 이미 체크했어.\n연습으로 해 보자!'],
   'つぎは「{name}」だよ': ['Tiếp theo: “{name}”', 'Next: “{name}”', '다음은 「{name}」'],
@@ -243,6 +260,8 @@ Lang.add({
   'つみきは いくつ？': ['Có bao nhiêu khối?', 'How many blocks?', '블록은 몇 개?'],
   'みどり': ['Xanh lá', 'Green', '초록'],
   'ピンク': ['Hồng', 'Pink', '분홍'],
+  'みどりの かち！': ['Xanh lá thắng!', 'Green wins!', '초록 승리!'],
+  'ピンクの かち！': ['Hồng thắng!', 'Pink wins!', '분홍 승리!'],
   'なにで あそぶ？': ['Chơi trò gì?', 'What shall we play?', '뭐 하고 놀까?'],
   'むずかしさ': ['Độ khó', 'Level', '난이도'],
   'うえ（ピンク）': ['Trên (hồng)', 'Top (pink)', '위 (분홍)'],
@@ -278,7 +297,11 @@ Lang.add({
   'このユーザーの記録をリセット': ['Xóa kỷ lục của người chơi này', "Reset this player's records", '이 사용자 기록 초기화'],
   'もう一度押すと消えます': ['Nhấn lần nữa để xóa', 'Press again to erase', '한 번 더 누르면 지워져요'],
   'ケロはかせの こえ：{credit}。': ['Giọng Giáo sư Kero: {credit}. ', "Dr. Kero's voice: {credit}. ", '케로 박사 목소리: {credit}. '],
-  'こえは 日本語の ときだけ です。': ['Giọng nói chỉ có ở tiếng Nhật.', 'The voice speaks Japanese only.', '목소리는 일본어일 때만 나와요.']
+  '日本語の こえ：{credit}。': ['Giọng tiếng Nhật: {credit}. ', 'Japanese voice: {credit}. ', '일본어 목소리: {credit}. '],
+  'パソコンでの確認中は 音も声も出しません（アドレスに ?sound=1 を付けると出ます）。': ['Khi kiểm tra trên máy tính, trò chơi không phát âm thanh hay giọng nói (thêm ?sound=1 vào địa chỉ để bật).', 'While testing on a computer there is no sound or voice (add ?sound=1 to the address to hear it).', '컴퓨터에서 확인할 때는 소리도 목소리도 나오지 않아요 (주소에 ?sound=1을 붙이면 나와요).'],
+  'この ことばの こえ：スマホの 読み上げの 声が 見つかりました。': ['Giọng tiếng Việt: đã tìm thấy giọng đọc trên điện thoại.', "English voice: the phone's text-to-speech voice was found.", '한국어 목소리: 휴대폰의 음성 읽기 목소리를 찾았어요.'],
+  'この ことばの こえ：スマホに 声が 見つかりません。Android の「設定 → システム → 言語と入力 → テキスト読み上げ」で この ことばの 音声データを 入れると しゃべります。': ['Giọng tiếng Việt: chưa tìm thấy giọng đọc trên điện thoại. Vào “Cài đặt → Hệ thống → Ngôn ngữ và phương thức nhập → Chuyển văn bản thành giọng nói” của Android, tải dữ liệu giọng tiếng Việt thì Giáo sư Kero sẽ nói.', 'English voice: no voice was found on the phone. Install the English voice data in Android “Settings → System → Languages & input → Text-to-speech output” and Dr. Kero will talk.', '한국어 목소리: 휴대폰에서 목소리를 찾지 못했어요. Android의 “설정 → 시스템 → 언어 및 입력 → 텍스트 음성 변환”에서 한국어 음성 데이터를 설치하면 말해요.'],
+  'この ことばの こえ：このブラウザでは 使えません。': ['Giọng tiếng Việt: trình duyệt này không hỗ trợ.', "English voice: this browser can't speak.", '한국어 목소리: 이 브라우저에서는 쓸 수 없어요.']
 });
 
 // The big title, one line per row (each letter hops on its own).

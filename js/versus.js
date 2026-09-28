@@ -165,7 +165,7 @@ var Versus = (function () {
     var b = play.players.bottom.score, tp = play.players.top.score;
     S.play(b === tp ? 'soft' : 'fanfare');
     host.confetti(60);
-    host.speak(b === tp ? 'ひきわけ！' : (b > tp ? 'みどり' : 'ピンク') + 'の かち！');
+    host.speak(L(b === tp ? 'ひきわけ！' : b > tp ? 'みどりの かち！' : 'ピンクの かち！'));
     SIDES.forEach(function (sd) {
       var pl = play.players[sd.id], other = play.players[sd.id === 'top' ? 'bottom' : 'top'];
       var end = pl.el.querySelector('.vs-end');
@@ -189,7 +189,7 @@ var Versus = (function () {
     if (play.state === 'ready' && t > 1.0) {
       play.state = 'show'; play.t = 0;
       S.play('go');
-      host.speak(play.game === 'janken' ? ASK_TEXT[play.q.ask] : GAMES.filter(function (g) { return g.id === play.game; })[0].ask);
+      host.speak(L(play.game === 'janken' ? ASK_TEXT[play.q.ask] : GAMES.filter(function (g) { return g.id === play.game; })[0].ask));
     } else if (play.state === 'show') {
       SIDES.forEach(function (sd) { var pl = play.players[sd.id]; if (pl.wait > 0) pl.wait = Math.max(0, pl.wait - dt); });
       if (t > 20) reveal();

@@ -66,7 +66,7 @@
       Q.things.forEach(function (th) { th.moving = p.move === 2; });
       phase = 'look'; pt = 0; counted = 0; verdict = null;
       pad.enable(true);
-      api.speak('ことりは なんわ？');
+      api.speak(L('ことりは なんわ？'));
       api.progress(qi, qs.length);
       if (p.practice) pad.hint(Q.answer);
     }

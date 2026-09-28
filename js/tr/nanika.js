@@ -27,7 +27,7 @@
     function recall() {
       phase = 'recall'; pt = 0;
       if (doneBtn) { doneBtn.remove(); doneBtn = null; }
-      api.speak('さっき みた えを ' + g.targets.length + 'まい えらんでね');
+      api.speak(L('さっき みた えを {n}まい えらんでね', { n: g.targets.length }));
     }
     function finish() {
       phase = 'end';
@@ -39,7 +39,7 @@
       theme: 0,
       begin: function () {
         phase = 'look'; pt = 0;
-        api.speak('えを よく おぼえてね');
+        api.speak(L('えを よく おぼえてね'));
         doneBtn = api.bigButton(L('おぼえた！'), function () { if (phase === 'look') recall(); }, { x: 90, y: 540, w: 180, h: 64, size: 24 });
       },
       update: function (dt, playing) {

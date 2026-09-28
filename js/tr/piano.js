@@ -54,7 +54,7 @@
           phase = 'bravo'; pt = 0;
           hak.mode = 'happy'; hak.mt = 0;
           api.word(L('じょうず！'), 180, 200, 50, '#ff8fc0', 1.4);
-          api.speak('じょうず！');
+          api.speak(L('じょうず！'));
         }
       } else {
         mistakes++;

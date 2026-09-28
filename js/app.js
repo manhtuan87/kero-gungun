@@ -11,7 +11,8 @@
 
   // ---------------------------------------------------------------- language (js/lang.js, js/lang-text.js)
   // The names and lines in the data are put into the chosen language once, here at the start (the Node
-  // tools keep the Japanese data). The voice speaks Japanese only, so the other languages are text only.
+  // tools keep the Japanese data). Everything ケロはかせ says goes through L() too: in Japanese it is the key of
+  // a recorded clip, in the other languages the phone reads it (js/voice.js).
   (function localize() {
     if (Lang.cur === 'ja') return;
     var tx = function (s) { return L(s); };
@@ -196,7 +197,7 @@
     if (o.dur !== 0) tipTimer = setTimeout(hideBubble, o.dur || 6500);
   }
   function hideBubble() { clearTimeout(tipTimer); $('tip').classList.remove('on'); }
-  function speak(text) { if (save.voice && Lang.cur === 'ja') V.say(text); }
+  function speak(text) { if (save.voice) V.say(text); }   // (text in the chosen language: L())
 
   // ---------------------------------------------------------------- small pictures for the lists
 
@@ -310,7 +311,7 @@
     chip.classList.toggle('single', save.users.length < 2);
     chip.innerHTML = '<i style="background:' + C.COLORS[u.color] + '"></i>' + esc(nameOf(u) || L('なまえなし'));
     $('shop-badge').innerHTML = icon('star') + C.wallet(ud());
-    $('credit').textContent = V.credit ? L('こえ：{credit}', { credit: V.credit }) : '';
+    $('credit').textContent = V.credit ? L(Lang.cur === 'ja' ? 'こえ：{credit}' : '日本語の こえ：{credit}', { credit: V.credit }) : '';
     refreshToggles();
   }
 
@@ -323,7 +324,7 @@
     else {
       var nm = nameOf(u), line = C.checkedToday(save) ? pick(DATA.LINES.title) : DATA.LINES.checkFirst;
       text = nameHead(nm) + hello + '\n' + line;
-      parts = [nm ? nm + '、' : '', hello, line];   // the name is read by the phone, the rest are clips
+      parts = [nameHead(nm), hello, line];   // the name is read by the phone, the rest are clips (in Japanese)
     }
     setTimeout(function () {
       if (screen !== 'title') return;
@@ -429,7 +430,7 @@
           b.insertAdjacentHTML('beforeend', '<div class="tr-lock">' + icon('lock') + '<span>' + L('スタンプ あと {n}こ', { n: info.unlock - have }) + '</span></div>');
         } else if (!ud().seen[info.id]) b.insertAdjacentHTML('beforeend', '<span class="tr-new">' + L('あたらしい') + '</span>');
         b.addEventListener('click', function () {
-          if (!C.isOpen(save, info.id)) { S.play('ng'); shake(b); speak('スタンプを あつめると あそべるよ'); return; }
+          if (!C.isOpen(save, info.id)) { S.play('ng'); shake(b); speak(L('スタンプを あつめると あそべるよ')); return; }
           S.play('click'); forward(function () { openIntro(tr); });
         });
         grid.appendChild(b);
@@ -797,7 +798,7 @@
       var core = R.out.newBest ? pick(DATA.LINES.best) : R.out.firstPlay ? pick(DATA.LINES.first1) : R.rank >= 4 ? pick(DATA.LINES.good) : pick(DATA.LINES.soso);
       $('r-badge').textContent = R.out.newBest ? L('じこベスト！') : '';
       $('r-say').textContent = L('ケロはかせ「{t}」', { t: nameHead(who) + core });
-      speak([name + '！', who ? who + '、' : '', core]);
+      speak([L('{animal}！', { animal: name }), nameHead(who), core]);
       confetti(R.rank >= 5 ? 60 : 24);
       var got = document.querySelectorAll('#r-stars i');
       for (var i = 0; i < R.out.stars; i++) {
@@ -943,7 +944,7 @@
     check = { tests: tests, i: 0, ranks: [], stage: 'intro', recorded: !C.checkedToday(save), t: 0, out: null };
     renderCheck();
     show('check');
-    speak(check.recorded ? 'きょうの あたまチェック！ 3つの テストを するよ' : 'きょうは もう チェック したよ。 れんしゅうで やってみよう');
+    speak(L(check.recorded ? 'きょうの あたまチェック！ 3つの テストを するよ' : 'きょうは もう チェック したよ。 れんしゅうで やってみよう'));
   }
 
   function testRows() {
@@ -994,7 +995,7 @@
       check.stage = 'between';
       renderCheck(); show('check');
       S.play('soft');
-      speak('よく できました！ つぎは ' + trOf(check.tests[check.i]).name);
+      speak(L('よく できました！ つぎは {name}', { name: trOf(check.tests[check.i]).name }));
       return;
     }
     check.out = C.addCheck(save, { ranks: check.ranks, tests: check.tests });
@@ -1042,8 +1043,8 @@
       $('ck-say').textContent = L('ケロはかせ「{t}」', { t: line });
       S.play('fanfare');
       confetti(40);
-      var what = check.out.age != null ? 'のうねんれいは ' + check.out.age + 'さい！' : 'きょうの あたまは ' + animalName(check.out.rank) + '！';
-      speak([what, who ? who + '、' : '', core]);
+      var what = check.out.age != null ? L('のうねんれいは {age}さい！', { age: check.out.age }) : L('きょうの あたまは {animal}！', { animal: animalName(check.out.rank) });
+      speak([what, nameHead(who), core]);
     }
     if (check.shown && !check.overlays && check.t >= 2.9) { check.overlays = true; queueGains(check.out, false); }
   }
@@ -1279,7 +1280,7 @@
     buildShop(); cheer(ch.id);
     confetti(60);
     showShopNote(L('{name}が なかまに なったよ！', { name: L(ch.name) }));
-    speak(ch.name + 'が なかまに なったよ！');
+    speak(L('{name}が なかまに なったよ！', { name: L(ch.name) }));
   }
   function cheer(id) { shop.cards.forEach(function (c) { if (c.id === id) c.happyT = shop.t; }); }
   function updateShop(dt) {
@@ -1325,13 +1326,19 @@
     $('p-all').classList.toggle('active', !!save.all);
     $('p-stop').textContent = L('おしまいの声かけ：{v}', { v: save.stopAfter ? L('{n}つで', { n: save.stopAfter }) : L('しない') });
     $('p-reset').textContent = L('このユーザーの記録をリセット');
-    var nv = V.nameVoice();
-    $('p-voice').textContent = (V.credit ? L('ケロはかせの こえ：{credit}。', { credit: V.credit }) : '') +
-      (Lang.cur !== 'ja' ? L('こえは 日本語の ときだけ です。') :
-      (V.quiet ? 'パソコンでの確認中は 音も声も出しません（アドレスに ?sound=1 を付けると出ます）。' :
+    // (Japanese: recorded clips, the phone reads only the names; the other languages: the phone reads everything)
+    var nv = V.phoneVoice(), quiet = L('パソコンでの確認中は 音も声も出しません（アドレスに ?sound=1 を付けると出ます）。');
+    $('p-voice').textContent = Lang.cur === 'ja' ?
+      (V.credit ? L('ケロはかせの こえ：{credit}。', { credit: V.credit }) : '') +
+      (V.quiet ? quiet :
         nv === 'ok' ? 'なまえの読み上げ：日本語の声が見つかりました。' :
         nv === 'none' ? 'なまえの読み上げ：日本語の声が見つかりません。Android の「設定 → システム → 言語と入力 → テキスト読み上げ」で日本語の音声データを入れると、なまえも よびます。' :
-        'なまえの読み上げ：このブラウザでは使えません。'));
+        'なまえの読み上げ：このブラウザでは使えません。') :
+      (V.credit ? L('日本語の こえ：{credit}。', { credit: V.credit }) : '') +
+      (V.quiet ? quiet :
+        nv === 'ok' ? L('この ことばの こえ：スマホの 読み上げの 声が 見つかりました。') :
+        nv === 'none' ? L('この ことばの こえ：スマホに 声が 見つかりません。Android の「設定 → システム → 言語と入力 → テキスト読み上げ」で この ことばの 音声データを 入れると しゃべります。') :
+        L('この ことばの こえ：このブラウザでは 使えません。'));
     showPanel('parent');
   }
 
@@ -1480,7 +1487,6 @@
     $('btn-sfx').classList.toggle('off', !save.sfx);
     $('btn-music').classList.toggle('off', !save.music);
     $('btn-voice').classList.toggle('off', !save.voice);
-    $('btn-voice').hidden = Lang.cur !== 'ja';   // (the voice speaks Japanese only)
   }
 
   function wire() {
@@ -1503,7 +1509,7 @@
     });
     $('btn-voice').addEventListener('click', function () {
       save.voice = !save.voice; V.set(save.voice); store(); refreshToggles(); S.play('click');
-      if (save.voice) speak('ケロはかせが しゃべるよ！');
+      if (save.voice) speak(L('ケロはかせが しゃべるよ！'));
     });
 
     ['list-back', 'intro-back', 'stamps-back', 'records-back', 'shop-back', 'check-back', 'vs-back'].forEach(function (id) { $(id).addEventListener('click', back); });

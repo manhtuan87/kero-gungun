@@ -77,7 +77,7 @@
       begin: function () {
         if (p.mode === 'now') { next(); return; }
         showCard(0); phase = 'intro'; pt = 0;
-        api.speak('この えを おぼえてね');
+        api.speak(L('この えを おぼえてね'));
       },
       update: function (dt, playing) {
         pt += dt;
@@ -87,7 +87,7 @@
         if (phase === 'intro') {
           if (pt > 1.8) {
             if (shownI < g.back - 1) { showCard(shownI + 1); pt = 0; }
-            else { j = -1; next(); api.speak(g.back === 2 ? 'ふたつ まえの え は どれ？' : 'ひとつ まえの え は どれ？'); }
+            else { j = -1; next(); api.speak(L(g.back === 2 ? 'ふたつ まえの え は どれ？' : 'ひとつ まえの え は どれ？')); }
           }
         } else if (phase === 'look' && pt > (p.show || 2)) {
           phase = 'hide'; pt = 0; api.sfx('flip');

@@ -72,7 +72,7 @@
       // In the mixed level it changes all the time, so there it is only shown above the hand.
       if (p.seq !== 'mix' && (!prev || prev.ask !== r.ask)) {
         phase = 'switch'; switchT = 0; cur = r; active = false;
-        api.speak(prev ? 'こんどは ' + ASK[r.ask].say + '！' : ASK[r.ask].say + '！');
+        api.speak(L(prev ? 'こんどは ' + ASK[r.ask].say + '！' : ASK[r.ask].say + '！'));
         return;
       }
       show(r);
@@ -80,7 +80,7 @@
     function show(r) {
       cur = r; phase = 'show'; pt = 0; since = 0; active = true;
       api.sfx('pop');
-      if (p.seq === 'mix') api.speak(ASK[r.ask].say);
+      if (p.seq === 'mix') api.speak(L(ASK[r.ask].say));
       api.progress(i, rounds.length);
     }
     function tap(h) {

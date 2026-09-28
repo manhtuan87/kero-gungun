@@ -57,7 +57,7 @@
           phase = 'done'; pt = 0;
           api.ok(180, 190, 76);
           api.burst(180, 190, 12, '#fff6a8');
-          api.speak(Q.word + '！');
+          api.speak(L('{word}！', { word: Q.word }));
           api.progress(qi + 1, qs.length);
         }
       } else {
