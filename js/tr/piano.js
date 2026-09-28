@@ -1,5 +1,6 @@
 /* ピアノ (the original: 名曲演奏) — play a song by following the notes. The notes sit higher or lower
-   by pitch, like a simple score. かんたん lights up the next key; むずかしい shows only the note names.
+   by pitch, like a simple score. かんたん lights up the next key. The keys are always in colour; at
+   むずかしい and おとな the notes above are white, so their names have to be read.
    When the song is done, the whole song plays by itself as a reward. */
 (function (T) {
   'use strict';
@@ -120,7 +121,7 @@
           var kx = k * KEY_W, down = pressed[k] > 0, sx = shake[k] > 0 ? Math.sin(shake[k] * 60) * 3 : 0;
           var glow = p.glow && phase === 'play' && notes[i] && notes[i].k === k;
           D.roundRect(c, kx + 2 + sx, KEY_Y + (down ? 4 : 0), KEY_W - 4, KEY_H, 12);
-          D.paint(c, p.colors ? KEY_COLORS[k] : '#ffffff', D.INK, 3);
+          D.paint(c, KEY_COLORS[k], D.INK, 3);
           D.roundRect(c, kx + 6 + sx, KEY_Y + 8 + (down ? 4 : 0), KEY_W - 12, 60, 8); D.paint(c, 'rgba(255,255,255,.35)');
           if (glow) {
             c.save(); c.globalAlpha = 0.45 + 0.35 * Math.sin(clock * 8);
@@ -128,7 +129,7 @@
             c.restore();
             D.hand(c, kx + KEY_W / 2 + 4, KEY_Y + 110 + Math.sin(clock * 8) * 4, 0.8, false);
           }
-          noteName(c, A, D, k, kx + KEY_W / 2 + sx, KEY_Y + KEY_H - 24 + (down ? 4 : 0), 21, p.colors);
+          noteName(c, A, D, k, kx + KEY_W / 2 + sx, KEY_Y + KEY_H - 24 + (down ? 4 : 0), 21, true);
         }
         c.save(); c.translate(318, 386); c.scale(0.42, 0.42);
         D.critter(c, { x: 0, y: 0, t: clock, kind: 'frog', look: { x: -300, y: 0 }, mode: hak.mode, mt: hak.mt, wear: A.hakase, noSeat: true });
@@ -147,6 +148,7 @@
   T.register({
     id: 'piano', name: 'ピアノ', orig: '名曲演奏', kind: 'time', songs: true,
     help: 'うえの おんぷと おなじ けんばんを\nじゅんばんに おしてね！\nさいごに きょくを ぜんぶ きけるよ',
+    // colors: the notes above in the keys' colours (the keys themselves always are)
     levels: {
       e: { glow: true, colors: true },
       n: { glow: false, colors: true },
