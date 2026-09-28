@@ -151,83 +151,155 @@ var Art = (function () {
   }
 
   function kangaroo(ctx, t, run) {
-    var hop = run ? Math.abs(Math.sin(t * 6)) : 0, C = '#d9a066';
+    var hop = run ? Math.abs(Math.sin(t * 6)) : 0, C = '#d9a066', FAR = '#c48c55', LT = '#f5d8b0';
     ctx.save(); ctx.translate(0, -hop * 18);
-    tube(ctx, function () { ctx.beginPath(); ctx.moveTo(-12, -22); ctx.quadraticCurveTo(-46, -12, -64, 0); }, 11, C);
-    blob(ctx, [['e', -2, -18, 19, 16], ['e', 10, -4, 24, 6], ['e', 8, -44, 19, 27, -0.25], ['e', 27, -76, 14, 12], ['e', 40, -73, 10, 7],
-      ['e', 21, -95, 5, 13, -0.2], ['e', 31, -94, 5, 13, 0.25]], C);
-    ellipse(ctx, 15, -40, 10, 17, -0.25); paint(ctx, '#f5d8b0');
-    ellipse(ctx, 21, -95, 2.2, 8, -0.2); paint(ctx, '#e9a9a9');
-    ellipse(ctx, 31, -94, 2.2, 8, 0.25); paint(ctx, '#e9a9a9');
-    ellipse(ctx, 24, -48, 5, 10, 0.6); paint(ctx, C, INK, 2.4);
-    eyeDot(ctx, 31, -79, 3.2);
-    circle(ctx, 49, -74, 3); paint(ctx, '#3a2618');
-    smile(ctx, 42, -67, 4); blush(ctx, 34, -69, 3.8);
+    // the thick tail lying on the ground behind
+    ctx.beginPath(); ctx.moveTo(-10, -30); ctx.bezierCurveTo(-30, -24, -48, -10, -62, -2); ctx.bezierCurveTo(-64, 2, -58, 4, -52, 2);
+    ctx.bezierCurveTo(-38, -2, -20, -8, -4, -14); ctx.closePath();
+    ctx.lineJoin = 'round'; paint(ctx, C, INK, 3);
+    // the far hind leg: a big thigh and a long foot on the ground
+    ellipse(ctx, -2, -22, 15, 12, -0.3); paint(ctx, FAR, INK, 2.6);
+    roundRect(ctx, -8, -6, 30, 7, 3.5); paint(ctx, FAR, INK, 2.4);
+    // the body: a pear, narrow at the top, with the light belly and the pouch
+    ctx.beginPath(); ctx.moveTo(-10, -18); ctx.bezierCurveTo(-18, -44, -4, -72, 12, -72); ctx.bezierCurveTo(24, -70, 26, -50, 22, -32);
+    ctx.bezierCurveTo(18, -16, 4, -10, -10, -18); ctx.closePath();
+    paint(ctx, C, INK, 3);
+    ellipse(ctx, 13, -40, 8, 16, -0.15); paint(ctx, LT);
+    ctx.beginPath(); ctx.moveTo(6, -32); ctx.quadraticCurveTo(13, -28, 20, -33); ctx.lineCap = 'round'; paint(ctx, null, 'rgba(90,56,37,.4)', 1.8);
+    // the near hind leg
+    ellipse(ctx, 2, -20, 16, 13, -0.35); paint(ctx, C, INK, 2.8);
+    roundRect(ctx, -2, -5, 32, 7.5, 3.8); paint(ctx, C, INK, 2.6);
+    // the small arms held in front
+    tube(ctx, function () { ctx.beginPath(); ctx.moveTo(17, -54); ctx.quadraticCurveTo(26, -48, 28, -41); }, 5, C);
+    // the head: a long face with the nose at the tip, and tall rounded ears
+    ellipse(ctx, 13, -93, 5.5, 12, -0.25); paint(ctx, FAR, INK, 2.4); ellipse(ctx, 13, -93, 2.4, 8, -0.25); paint(ctx, '#e9a9a9');
+    ctx.beginPath(); ctx.moveTo(8, -80); ctx.bezierCurveTo(8, -90, 20, -92, 28, -86); ctx.bezierCurveTo(36, -82, 42, -80, 42, -75);
+    ctx.bezierCurveTo(42, -70, 34, -70, 26, -71); ctx.bezierCurveTo(16, -72, 8, -72, 8, -80); ctx.closePath();
+    paint(ctx, C, INK, 3);
+    ellipse(ctx, 21, -95, 5.5, 12, 0.15); paint(ctx, C, INK, 2.4); ellipse(ctx, 21, -95, 2.4, 8, 0.15); paint(ctx, '#e9a9a9');
+    circle(ctx, 41, -76, 2.8); paint(ctx, '#3a2618');
+    eyeDot(ctx, 25, -81, 3); smile(ctx, 36, -72.5, 3); blush(ctx, 28, -74, 3.4);
     ctx.restore();
   }
 
-  function legs4(ctx, xs, top, len, g, run, color, hoof) {
-    xs.forEach(function (x, i) {
-      var a = run ? Math.sin(g + [0, Math.PI, Math.PI * 0.5, Math.PI * 1.5][i]) * 0.5 : 0;
-      ctx.save(); ctx.translate(x, top); ctx.rotate(a);
-      roundRect(ctx, -4.5, 0, 9, len, 4.5); paint(ctx, color, INK, 2.6);
-      if (hoof) { roundRect(ctx, -5, len - 7, 10, 8, 3); paint(ctx, hoof, INK, 2); }
-      ctx.restore();
-    });
+  // A leg seen from the side, from the shoulder or hip (x, y) down to the ground (len): thick at the top, thin at the
+  // ankle, a knee that bends (knee +1: forwards, the front legs; -1: backwards, the hind legs), and a paw (or a hoof).
+  function leg(ctx, x, y, len, a, w0, w1, knee, col, hoof) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(a);
+    var kx = knee * w0 * 0.3, ky = len * 0.55, fy = len - (hoof ? 6 : 4);
+    ctx.beginPath();
+    ctx.moveTo(-w0 / 2, -4);
+    ctx.quadraticCurveTo(-w0 / 2 + kx * 0.4, ky * 0.6, -w1 / 2 + kx, ky);
+    ctx.quadraticCurveTo(-w1 / 2 + kx * 0.3, fy * 0.9, -w1 / 2, fy);
+    ctx.lineTo(w1 / 2, fy);
+    ctx.quadraticCurveTo(w1 / 2 + kx * 0.3, fy * 0.9, w1 / 2 + kx, ky);
+    ctx.quadraticCurveTo(w0 / 2 + kx * 0.4, ky * 0.6, w0 / 2, -4);
+    ctx.closePath();
+    ctx.lineJoin = 'round'; paint(ctx, col, INK, 2.4);
+    if (hoof) { roundRect(ctx, -w1 / 2 - 1.5, fy - 1, w1 + 3, 7, 2.5); paint(ctx, hoof, INK, 2); }
+    else { ellipse(ctx, 2, fy + 0.5, w1 / 2 + 3, 3.8); paint(ctx, col, INK, 2.2); }
+    ctx.restore();
   }
 
   function horse(ctx, t, run) {
-    var g = run ? t * 9 : 0, bob = run ? Math.sin(g * 2) * 2.5 : 0, C = '#c98b56', M = '#6b4226';
+    var g = run ? t * 9 : 0, bob = run ? -Math.abs(Math.sin(g)) * 3 : 0, C = '#c98b56', FAR = '#b27546', M = '#6b4226', H = '#4a3020';
+    var sw = function (ph) { return run ? Math.sin(g + ph) * 0.45 : 0; };
     ctx.save(); ctx.translate(0, bob);
-    tube(ctx, function () { ctx.beginPath(); ctx.moveTo(-32, -48); ctx.quadraticCurveTo(-52, -42, -50, -20); }, 7, M);
-    legs4(ctx, [-24, -12, 20, 31], -38, 38, g, run, C, '#5a3825');
-    blob(ctx, [['e', 0, -44, 36, 17], ['e', 31, -61, 10, 22, 0.55], ['e', 46, -77, 18, 10, 0.45]], C);
-    ctx.beginPath(); ctx.moveTo(36, -86); ctx.lineTo(40, -99); ctx.lineTo(45, -87); ctx.closePath(); paint(ctx, C, INK, 2.4);
-    tube(ctx, function () { ctx.beginPath(); ctx.moveTo(20, -50); ctx.quadraticCurveTo(24, -80, 38, -88); }, 6, M);
-    ellipse(ctx, 57, -70, 7, 5, 0.45); paint(ctx, '#e3ad7d');
-    circle(ctx, 59, -71, 1.8); paint(ctx, '#3a2618');
-    eyeDot(ctx, 46, -82, 3); blush(ctx, 45, -72, 3.5);
+    // the far legs (a little darker), the tail, the near legs, then the body over their tops
+    leg(ctx, 17, -38, 38, sw(Math.PI), 9, 6, 1, FAR, H);
+    leg(ctx, -24, -38, 38, sw(0), 11, 6, -1, FAR, H);
+    tube(ctx, function () { ctx.beginPath(); ctx.moveTo(-33, -56); ctx.bezierCurveTo(-46, -54, -50, -40, -46, -22); }, 8, M);
+    leg(ctx, 21, -38, 38, sw(0), 10, 6.5, 1, C, H);
+    leg(ctx, -20, -38, 38, sw(Math.PI), 12, 6.5, -1, C, H);
+    // the body and the neck as one shape (both outlines first, then both fills, so there is no seam)
+    function body() {
+      ctx.beginPath(); ctx.moveTo(-35, -44); ctx.bezierCurveTo(-40, -58, -30, -64, -16, -64); ctx.bezierCurveTo(0, -64, 12, -62, 22, -58);
+      ctx.bezierCurveTo(32, -54, 32, -40, 24, -36); ctx.bezierCurveTo(10, -32, -12, -32, -26, -35); ctx.bezierCurveTo(-32, -36, -35, -40, -35, -44); ctx.closePath();
+    }
+    function neck() { ctx.beginPath(); ctx.moveTo(12, -60); ctx.bezierCurveTo(18, -76, 26, -86, 36, -90); ctx.lineTo(44, -80); ctx.bezierCurveTo(38, -72, 32, -58, 30, -46); ctx.closePath(); }
+    ctx.lineJoin = 'round';
+    neck(); paint(ctx, null, INK, 6); body(); paint(ctx, null, INK, 6);
+    neck(); paint(ctx, C); body(); paint(ctx, C);
+    // the head: long, the nose down and forward; the muzzle, a nostril, the ear
+    ctx.beginPath(); ctx.moveTo(32, -92); ctx.bezierCurveTo(40, -97, 48, -92, 56, -80); ctx.bezierCurveTo(61, -73, 57, -66, 50, -67);
+    ctx.bezierCurveTo(44, -68, 38, -74, 32, -80); ctx.bezierCurveTo(29, -84, 29, -89, 32, -92); ctx.closePath();
+    paint(ctx, C, INK, 3);
+    ellipse(ctx, 53, -72, 6.5, 5, 0.5); paint(ctx, '#e3ad7d');
+    ellipse(ctx, 55, -73, 1.6, 2.2, 0.5); paint(ctx, '#3a2618');
+    ctx.beginPath(); ctx.moveTo(33, -92); ctx.lineTo(34, -104); ctx.lineTo(40, -94); ctx.closePath(); paint(ctx, C, INK, 2.4);
+    // the mane along the neck and the forelock
+    tube(ctx, function () { ctx.beginPath(); ctx.moveTo(32, -94); ctx.bezierCurveTo(24, -84, 18, -72, 12, -60); }, 7, M);
+    ctx.beginPath(); ctx.moveTo(36, -93); ctx.quadraticCurveTo(44, -92, 44, -86); ctx.quadraticCurveTo(38, -88, 35, -88); ctx.closePath(); paint(ctx, M, INK, 1.8);
+    eyeDot(ctx, 42, -84, 3); blush(ctx, 45, -76, 3.4);
     ctx.restore();
   }
 
   function cheetah(ctx, t, run) {
-    var g = run ? t * 12 : 0, bob = run ? Math.sin(g * 2) * 2 : 0, C = '#f7c85a', S = '#6b4a2a';
+    var g = run ? t * 12 : 0, bob = run ? -Math.abs(Math.sin(g)) * 3 : 0, C = '#f7c85a', FAR = '#e2ae45', S = '#5a3a22';
+    var sw = function (ph) { return run ? Math.sin(g + ph) * 0.55 : 0; };
     ctx.save(); ctx.translate(0, bob);
-    tube(ctx, function () { ctx.beginPath(); ctx.moveTo(-34, -40); ctx.quadraticCurveTo(-62, -40, -70, -58); }, 6, C);
-    circle(ctx, -70, -58, 3.6); paint(ctx, S);
-    legs4(ctx, [-24, -13, 18, 28], -30, 30, g, run, C, null);
-    blob(ctx, [['e', 0, -36, 38, 14], ['c', 42, -46, 14], ['c', 34, -58, 5], ['c', 48, -59, 5]], C);
-    [[-20, -40], [-8, -32], [4, -42], [16, -34], [-28, -30], [10, -26], [-14, -46]].forEach(function (s) { circle(ctx, s[0], s[1], 2.8); paint(ctx, S); });
-    ellipse(ctx, 49, -41, 8, 6); paint(ctx, '#fff4dc');
-    stroke(ctx, [44, -46, 46, -38], 2, S);
-    eyeDot(ctx, 44, -50, 3); circle(ctx, 55, -44, 2.4); paint(ctx, '#3a2618');
-    smile(ctx, 51, -38, 3.5); blush(ctx, 38, -42, 3.4);
+    leg(ctx, 16, -30, 31, sw(Math.PI), 7.5, 5, 1, FAR);
+    leg(ctx, -22, -30, 31, sw(0), 9, 5, -1, FAR);
+    // the long tail with dark rings and a dark tip
+    tube(ctx, function () { ctx.beginPath(); ctx.moveTo(-30, -42); ctx.bezierCurveTo(-50, -40, -60, -34, -66, -48); }, 5.5, C);
+    [[-47, -39.5], [-57, -38]].forEach(function (q) { circle(ctx, q[0], q[1], 2.6); paint(ctx, S); });
+    circle(ctx, -66, -49, 3.4); paint(ctx, S);
+    leg(ctx, 20, -30, 31, sw(0), 8, 5.5, 1, C);
+    leg(ctx, -18, -30, 31, sw(Math.PI), 10, 5.5, -1, C);
+    // a slim body: a deep chest and a thin waist, with spots
+    function body() {
+      ctx.beginPath(); ctx.moveTo(-30, -30); ctx.bezierCurveTo(-38, -36, -34, -48, -20, -48); ctx.bezierCurveTo(-4, -49, 12, -50, 22, -48);
+      ctx.bezierCurveTo(32, -46, 32, -32, 24, -28); ctx.bezierCurveTo(14, -24, 2, -30, -8, -30); ctx.bezierCurveTo(-18, -30, -24, -27, -30, -30); ctx.closePath();
+    }
+    body(); ctx.lineJoin = 'round'; paint(ctx, C, INK, 3);
+    ctx.save(); body(); ctx.clip();
+    [[-22, -43], [-12, -38], [-2, -44], [6, -37], [14, -44], [-16, -32], [20, -38], [-28, -38], [0, -33], [10, -30]].forEach(function (q) { circle(ctx, q[0], q[1], 2.3); paint(ctx, S); });
+    ctx.restore();
+    // the head: small and round, little round ears, and the black "tear" line from the eye to the mouth
+    circle(ctx, 30, -67, 5); paint(ctx, FAR, INK, 2.2);
+    ellipse(ctx, 37, -57, 13.5, 11.5); paint(ctx, C, INK, 3);
+    circle(ctx, 39, -68, 5); paint(ctx, C, INK, 2.2); circle(ctx, 39, -67.5, 2.2); paint(ctx, '#fff4dc');
+    ellipse(ctx, 47, -52, 7, 5.5); paint(ctx, '#fff4dc');
+    ellipse(ctx, 53, -54.5, 2.8, 2.1); paint(ctx, S);
+    ctx.beginPath(); ctx.moveTo(52.5, -52); ctx.quadraticCurveTo(50, -48.5, 46, -49.5); ctx.lineCap = 'round'; paint(ctx, null, INK, 1.6);
+    eyeDot(ctx, 42, -60, 3.1);
+    ctx.beginPath(); ctx.moveTo(43.5, -57); ctx.quadraticCurveTo(44, -51, 47.5, -48.5); paint(ctx, null, S, 2.2);
+    [[30, -60], [33, -54], [28, -55], [35, -64]].forEach(function (q) { circle(ctx, q[0], q[1], 1.4); paint(ctx, S); });
+    blush(ctx, 38, -51, 3.2);
     ctx.restore();
   }
 
-  function wing(ctx, x, y, a, color) {
+  // A falcon's wing seen from the side, raised: long and pointed.
+  function pointWing(ctx, x, y, a, col) {
     ctx.save(); ctx.translate(x, y); ctx.rotate(a);
-    ctx.beginPath(); ctx.moveTo(4, 2); ctx.quadraticCurveTo(-8, -26, -46, -40); ctx.quadraticCurveTo(-30, -14, -22, 8); ctx.closePath();
-    ctx.lineJoin = 'round'; paint(ctx, color, INK, 2.8);
-    stroke(ctx, [-12, -8, -30, -26], 1.8, 'rgba(90,56,37,.35)');
-    stroke(ctx, [-8, 0, -24, -12], 1.8, 'rgba(90,56,37,.35)');
+    ctx.beginPath(); ctx.moveTo(10, 2); ctx.bezierCurveTo(8, -18, -4, -38, -24, -56); ctx.bezierCurveTo(-26, -40, -22, -18, -14, 4); ctx.closePath();
+    ctx.lineJoin = 'round'; paint(ctx, col, INK, 2.6);
+    stroke(ctx, [0, -10, -17, -42], 1.6, 'rgba(0,0,0,.18)'); stroke(ctx, [4, -2, -12, -24], 1.6, 'rgba(0,0,0,.18)');
     ctx.restore();
   }
   function falcon(ctx, t, run) {
-    var f = Math.sin(t * (run ? 12 : 3)), C = '#7d93b8', DK = '#51688f';
-    ctx.save(); ctx.translate(0, -44 + f * 3);
-    wing(ctx, 0, -6, 0.2 - f * 0.45, DK);
-    ctx.beginPath(); ctx.moveTo(-24, -2); ctx.lineTo(-52, -8); ctx.lineTo(-54, 8); ctx.lineTo(-24, 6); ctx.closePath(); paint(ctx, C, INK, 2.6);
-    ellipse(ctx, 0, 0, 32, 15, -0.08); paint(ctx, C, INK, 3);
-    ellipse(ctx, 6, 5, 20, 8, -0.08); paint(ctx, '#eef2f8');
-    [[0, 3], [8, 5], [14, 3]].forEach(function (s) { stroke(ctx, [s[0], s[1], s[0] + 3, s[1] + 3], 1.6, DK); });
-    circle(ctx, 30, -6, 13); paint(ctx, C, INK, 3);
-    ctx.save(); circle(ctx, 30, -6, 12); ctx.clip(); ellipse(ctx, 27, -15, 15, 9); paint(ctx, DK); ctx.restore();
-    stroke(ctx, [31, -3, 29, 5], 3, DK);
-    ctx.beginPath(); ctx.moveTo(41, -9); ctx.quadraticCurveTo(51, -8, 47, 1); ctx.lineTo(41, -3); ctx.closePath(); paint(ctx, '#ffd23d', INK, 2.2);
-    circle(ctx, 35, -8, 5); paint(ctx, '#ffd23d', INK, 1.8); eyeDot(ctx, 35.5, -8, 2.6);
-    blush(ctx, 39, 0, 3);
-    wing(ctx, -4, -4, -0.25 + f * 0.6, C);
+    var f = Math.sin(t * (run ? 12 : 3)), C = '#7d93b8', DK = '#51688f', LT = '#eef2f8';
+    ctx.save(); ctx.translate(0, -40 + f * 3);
+    pointWing(ctx, 2, -6, -0.1 - f * 0.35, DK);   // the far wing
+    // the tail: long, with dark bands
+    ctx.beginPath(); ctx.moveTo(-22, -3); ctx.lineTo(-50, -7); ctx.quadraticCurveTo(-54, 0, -50, 6); ctx.lineTo(-22, 5); ctx.closePath();
+    ctx.lineJoin = 'round'; paint(ctx, C, INK, 2.6);
+    [-33, -42].forEach(function (x) { stroke(ctx, [x, -5, x, 5], 2.4, DK); });
+    // the body with a light, streaked belly and the yellow feet tucked under
+    [[-2, 13], [6, 13]].forEach(function (q) { ellipse(ctx, q[0], q[1] + 1, 4, 2.6); paint(ctx, '#ffd23d', INK, 1.8); });
+    function body() { ctx.beginPath(); ctx.moveTo(-24, 2); ctx.bezierCurveTo(-18, -14, 14, -16, 24, -8); ctx.bezierCurveTo(30, 0, 22, 12, 6, 13); ctx.bezierCurveTo(-8, 14, -22, 10, -24, 2); ctx.closePath(); }
+    body(); paint(ctx, C, INK, 3);
+    ctx.save(); body(); ctx.clip(); ellipse(ctx, 6, 8, 20, 8); paint(ctx, LT); ctx.restore();
+    [[0, 5], [8, 7], [14, 5]].forEach(function (q) { stroke(ctx, [q[0], q[1], q[0] + 3, q[1] + 3], 1.6, DK); });
+    // the head: a dark cap, the dark "moustache" under the eye, a yellow ring round the eye and a hooked beak
+    circle(ctx, 28, -9, 12); paint(ctx, C, INK, 3);
+    ctx.save(); circle(ctx, 28, -9, 11); ctx.clip(); ellipse(ctx, 25, -17, 15, 9); paint(ctx, DK); ctx.restore();
+    stroke(ctx, [30, -6, 28, 2], 3, DK);
+    ctx.beginPath(); ctx.moveTo(38, -13); ctx.quadraticCurveTo(49, -12, 47, -4); ctx.quadraticCurveTo(46, -1, 43, -3); ctx.lineTo(38, -5); ctx.closePath();
+    paint(ctx, '#ffd23d', INK, 2.2);
+    circle(ctx, 33, -11, 4.4); paint(ctx, '#ffd23d', INK, 1.8); eyeDot(ctx, 33.5, -11, 2.4);
+    blush(ctx, 36, -3, 2.8);
+    pointWing(ctx, -2, -4, -0.3 + f * 0.5, C);   // the near wing
     ctx.restore();
   }
 
