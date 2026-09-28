@@ -48,11 +48,14 @@
     { id: 'restraint', name: 'がまん', tests: ['janken'], good: 'がまんが とくい だね！' }
   ];
 
+  // The grown-ups' three levels (おとな) are near the original game's stages; only grown-up users see them.
   var LEVELS = [
     { id: 'e', name: 'かんたん', dots: 1 },
     { id: 'n', name: 'ふつう', dots: 2 },
     { id: 'h', name: 'むずかしい', dots: 3 },
-    { id: 'a', name: 'おとな', dots: 4, adult: true }
+    { id: 'ae', name: 'おとな かんたん', short: 'かんたん', dots: 1, adult: true },
+    { id: 'a', name: 'おとな ふつう', short: 'ふつう', dots: 2, adult: true },
+    { id: 'ah', name: 'おとな むずかしい', short: 'むずかしい', dots: 3, adult: true }
   ];
 
   // Pictures (drawn in pics.js). The names are the words of ことば つくり.

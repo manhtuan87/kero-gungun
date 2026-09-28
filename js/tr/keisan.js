@@ -12,6 +12,14 @@
     var s = U.int(r, 2, p.max), a2 = U.int(r, 1, s - 1);
     return { a: a2, b: s - a2, op: '＋', ans: s };
   }
+  // 計算20 and 計算100 of the original: one-digit numbers (a take-away starts from a sum of two of them)
+  function singleQ(r) {
+    var k = r(), a = U.int(r, 1, 9), b = U.int(r, 1, 9);
+    if (k < 0.34) return { a: a, b: b, op: '＋', ans: a + b };
+    if (k < 0.67) return { a: a + b, b: b, op: '−', ans: a };
+    return { a: a, b: b, op: '×', ans: a * b };
+  }
+  // 計算25 of the original: two-digit numbers too, and the times tables
   function adultQ(r) {
     var k = r(), a, b;
     if (k < 0.34) { a = U.int(r, 12, 89); b = Math.min(U.int(r, 3, 9), 99 - a); return { a: a, b: b, op: '＋', ans: a + b }; }
@@ -20,14 +28,16 @@
     return { a: a, b: b, op: '×', ans: a * b };
   }
 
-  // p: { n, ops: '+' | '+-', max, adult }
+  // p: { n, ops: '+' | '+-', max, adult, single (one-digit numbers only) }
+  // A sum comes only once in a run while there are others left (the smallest levels have only a few).
   function gen(p, r) {
-    var qs = [], guard = 0;
+    var qs = [], guard = 0, seen = {};
     while (qs.length < p.n && guard++ < 5000) {
-      var q = p.adult ? adultQ(r) : kidQ(p, r), last = qs[qs.length - 1];
+      var q = p.single ? singleQ(r) : p.adult ? adultQ(r) : kidQ(p, r), last = qs[qs.length - 1], key = q.a + q.op + q.b;
       if (last && last.a === q.a && last.b === q.b && last.op === q.op) continue;
+      if (seen[key] && guard < 3000) continue;
       if (qs.length >= 2 && q.ans === last.ans && q.ans === qs[qs.length - 2].ans) continue;
-      qs.push(q);
+      qs.push(q); seen[key] = true;
     }
     return qs;
   }
@@ -128,14 +138,17 @@
       e: { n: 10, ops: '+', max: 5, dots: true },
       n: { n: 10, ops: '+', max: 10 },
       h: { n: 10, ops: '+-', max: 10 },
+      ae: { n: 20, single: true },
       a: { n: 25 },
+      ah: { n: 100, single: true },
       test: { n: 10, ops: '+', max: 10 },
       testA: { n: 20 },
       practice: { n: 3, dots: true }
     },
     ranks: {
       e: [22, 28, 36, 46, 60, 80], n: [20, 26, 34, 44, 58, 80], h: [24, 30, 38, 50, 65, 90],
-      a: [30, 38, 46, 56, 70, 90], test: [20, 26, 34, 44, 58, 80], testA: [24, 30, 37, 45, 56, 72]
+      ae: [14, 18, 23, 29, 37, 50], a: [30, 38, 46, 56, 70, 90], ah: [75, 95, 120, 150, 190, 250],
+      test: [20, 26, 34, 44, 58, 80], testA: [24, 30, 37, 45, 56, 72]
     },
     gen: gen,
     start: start,

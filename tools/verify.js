@@ -17,7 +17,7 @@ function levelsOf(tr) { return Object.keys(tr.levels).filter(l => l !== 'practic
 function params(tr, lv, practice) {
   const p = Object.assign({}, tr.levels[lv]);
   if (practice) Object.assign(p, tr.levels.practice || {}, { practice: true });
-  p.adult = lv === 'a' || lv === 'testA';
+  p.adult = ['ae', 'a', 'ah', 'testA'].indexOf(lv) >= 0;
   return p;
 }
 function eachParams(tr, fn) {
@@ -40,7 +40,7 @@ T.list.forEach(tr => {
     check(!!tr.levels[lv], tr.id + ' ranks for a level it does not have: ' + lv);
   });
   if (!tr.versusOnly) levelsOf(tr).forEach(lv => check(!!tr.ranks[lv], tr.id + ' level ' + lv + ' has no ranks'));
-  if (!tr.checkOnly && !tr.versusOnly) ['e', 'n', 'h', 'a'].forEach(lv => check(!!tr.levels[lv], tr.id + ' misses level ' + lv));
+  if (!tr.checkOnly && !tr.versusOnly) ['e', 'n', 'h', 'ae', 'a', 'ah'].forEach(lv => check(!!tr.levels[lv], tr.id + ' misses level ' + lv));
 });
 
 // ---------------------------------------------------------------- every question maker
@@ -97,8 +97,10 @@ run('patto', (tr, p, lv, r) => {
   const rounds = tr.gen(p, r);
   check(rounds.length === p.rounds, `patto ${lv} count`);
   rounds.forEach(rd => {
-    check(rd.cells.length === p.k && new Set(rd.cells).size === p.k, `patto ${lv} cells`);
+    const m = p.grow ? Math.min(20, p.k + p.rounds - 1) : p.k;   // (grown-ups: enough eggs for the most a round can have)
+    check(rd.cells.length === m && new Set(rd.cells).size === m, `patto ${lv} cells`);
     check(rd.cells.every(c => c >= 0 && c < 20), `patto ${lv} cell range`);
+    if (p.nums) check(rd.nums.length === m && new Set(rd.nums).size === m && rd.nums.every(v => v >= 1 && v <= p.nums), `patto ${lv} numbers`);
   });
 });
 
@@ -235,7 +237,7 @@ Data.SONGS.concat([Data.SCALE]).forEach(g => {
 check(Data.SONGS.filter(g => g.unlock === 0).length === 3, 'three songs from the start');
 
 run('sudoku', (tr, p, lv, r) => {
-  if (r() > 0.2) return;   // puzzles take a moment: check a fifth of the runs
+  if (r() > (p.size === 9 ? 0.05 : 0.2)) return;   // puzzles take a moment: check a fifth of the runs (9 x 9: fewer)
   const qs = tr.gen(p, r);
   check(qs.length === p.q && qs.every(Boolean), `sudoku ${lv} made no puzzle`);
   qs.forEach(q => {

@@ -1,6 +1,7 @@
 /* あとだし じゃんけん (the original: 後出し勝負テスト) — ケロはかせ shows a hand and says
    "かって！" (win) or "まけて！" (lose); answer with the right hand as fast as you can.
-   Losing on purpose is the hard part: it trains holding back the hand you want to show. */
+   Losing on purpose is the hard part: it trains holding back the hand you want to show.
+   At おとな むずかしい the three buttons change places every time. */
 (function (T) {
   'use strict';
   var U = T.U, G = typeof window !== 'undefined' ? window : {};
@@ -13,7 +14,7 @@
   // 0 グー beats 1 チョキ, 1 チョキ beats 2 パー, 2 パー beats 0 グー
   function answerFor(hand, ask) { return ask === 'win' ? (hand + 2) % 3 : ask === 'lose' ? (hand + 1) % 3 : hand; }
 
-  // p: { q, seq: 'win' | 'wl' (win, then lose) | 'mix' }
+  // p: { q, seq: 'win' | 'wl' (win, then lose) | 'mix', shuffle (the buttons change places) }
   function gen(p, r) {
     var out = [], half = Math.ceil(p.q / 2);
     for (var i = 0; i < p.q; i++) {
@@ -55,9 +56,15 @@
     var hak = { mode: 'idle', mt: 0 };
     var HX = 180, HY = 238;
 
-    var ch = api.choices([0, 1, 2].map(function (h) {
-      return { draw: function (c, w, hh) { A.jankenHand(c, h, w / 2, hh / 2 - 13, Math.min(w, hh) / 134); A.text(c, L(HANDS[h]), w / 2, hh - 12, 17, D.INK, { stroke: false, max: w - 6 }); } };
-    }), tap, { top: 478, h: 130, gap: 10 });
+    var order = [0, 1, 2], ch = null;   // (order: the hand on each button)
+    function makeHands() {
+      if (ch) ch.remove();
+      ch = api.choices(order.map(function (h) {
+        return { draw: function (c, w, hh) { A.jankenHand(c, h, w / 2, hh / 2 - 13, Math.min(w, hh) / 134); A.text(c, L(HANDS[h]), w / 2, hh - 12, 17, D.INK, { stroke: false, max: w - 6 }); } };
+      }), function (i) { tap(order[i]); }, { top: 478, h: 130, gap: 10 });
+    }
+    function btn(h) { return order.indexOf(h); }
+    makeHands();
 
     function next() {
       i++;
@@ -79,6 +86,7 @@
     }
     function show(r) {
       cur = r; phase = 'show'; pt = 0; since = 0; active = true;
+      if (p.shuffle) { order = U.shuffle(api.rnd, order); makeHands(); }
       api.sfx('pop');
       if (p.seq === 'mix') api.speak(L(ASK[r.ask].say));
       api.progress(i, rounds.length);
@@ -88,13 +96,13 @@
       active = false;
       if (h === cur.ans) {
         api.ok(HX, HY, 70);
-        ch.mark(h, 'ok');
+        ch.mark(btn(h), 'ok');
         hak.mode = 'happy'; hak.mt = 0;
         phase = 'after'; pt = 0;
       } else {
         mistakes++;
         api.ng(HX, HY, 60);
-        ch.mark(h, 'ng'); ch.mark(cur.ans, 'hint');
+        ch.mark(btn(h), 'ng'); ch.mark(btn(cur.ans), 'hint');
         phase = 'after'; pt = -0.35;
       }
       api.progress(i + 1, rounds.length);
@@ -110,7 +118,7 @@
         if (!playing) return;
         if (phase === 'show' && active) {
           time += dt; since += dt;
-          if (p.practice && since > 2.2) ch.hint(cur.ans);
+          if (p.practice && since > 2.2) ch.hint(btn(cur.ans));
         } else if (phase === 'after' && pt > 0.32) {
           next();
         } else if (phase === 'switch') {
@@ -140,7 +148,7 @@
         D.circle(c, HX, HY, 80); D.paint(c, '#fffdf5');
         A.jankenHand(c, cur.hand, HX, HY - 4, 1.2 * s, '#9ee07a');
       },
-      peek: function () { return phase === 'show' && active ? cur.ans : null; },   // for playtesting
+      peek: function () { return phase === 'show' && active ? btn(cur.ans) : null; },   // for playtesting (the button to press)
       end: function () {}
     };
   }
@@ -152,14 +160,17 @@
       e: { q: 10, seq: 'win' },
       n: { q: 10, seq: 'wl' },
       h: { q: 12, seq: 'mix' },
+      ae: { q: 16, seq: 'wl' },
       a: { q: 20, seq: 'mix' },
+      ah: { q: 24, seq: 'mix', shuffle: true },
       test: { q: 10, seq: 'wl' },
       testA: { q: 16, seq: 'mix' },
       practice: { q: 4, seq: 'wl' }
     },
     ranks: {
       e: [8, 10, 13, 17, 22, 30], n: [10, 13, 16, 20, 26, 35], h: [14, 17, 21, 26, 33, 45],
-      a: [14, 17, 20, 24, 29, 36], test: [10, 13, 16, 20, 26, 35], testA: [12, 14, 17, 20, 24, 30]
+      ae: [10, 12, 15, 19, 24, 32], a: [14, 17, 20, 24, 29, 36], ah: [20, 24, 29, 35, 43, 55],
+      test: [10, 13, 16, 20, 26, 35], testA: [12, 14, 17, 20, 24, 30]
     },
     gen: gen, answerFor: answerFor,
     start: start,

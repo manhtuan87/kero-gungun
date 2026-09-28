@@ -113,14 +113,17 @@
       e: { rounds: 10, k: 3, max: 9, sizes: false, move: false },
       n: { rounds: 10, k: 4, max: 9, sizes: true, move: false },
       h: { rounds: 10, k: 5, max: 20, sizes: true, move: true },
+      ae: { rounds: 12, k: 5, max: 99, sizes: true, move: false },
       a: { rounds: 15, k: 6, max: 99, sizes: true, move: true },
+      ah: { rounds: 15, k: 7, max: 999, sizes: true, move: true },
       test: { rounds: 10, k: 4, max: 9, sizes: true, move: false },
       testA: { rounds: 12, k: 6, max: 99, sizes: true, move: true },
       practice: { rounds: 3 }
     },
     ranks: {
       e: [9, 12, 15, 19, 25, 34], n: [11, 14, 18, 23, 30, 40], h: [14, 18, 23, 29, 37, 50],
-      a: [14, 17, 21, 26, 32, 42], test: [11, 14, 18, 23, 30, 40], testA: [12, 15, 18, 22, 28, 36]
+      ae: [11, 14, 17, 21, 27, 36], a: [14, 17, 21, 26, 32, 42], ah: [17, 21, 26, 32, 40, 52],
+      test: [11, 14, 18, 23, 30, 40], testA: [12, 15, 18, 22, 28, 36]
     },
     gen: gen,
     start: start,

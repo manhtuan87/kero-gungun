@@ -148,10 +148,12 @@
       e: { q: 5, start: [0, 0], events: [3, 4], out: false, speed: 0.8, multi: false },
       n: { q: 5, start: [1, 3], events: [5, 6], out: true, speed: 1.0, multi: false },
       h: { q: 5, start: [2, 4], events: [7, 9], out: true, speed: 1.3, multi: true },
-      a: { q: 5, start: [2, 5], events: [10, 14], out: true, speed: 1.8, multi: true },
+      ae: { q: 6, start: [1, 4], events: [8, 10], out: true, speed: 1.4, multi: true },
+      a: { q: 6, start: [2, 5], events: [10, 14], out: true, speed: 1.8, multi: true },
+      ah: { q: 6, start: [3, 6], events: [14, 18], out: true, speed: 2.3, multi: true },
       practice: { q: 2, start: [0, 0], events: [2, 3], out: false, speed: 0.8, multi: false }
     },
-    ranks: { e: [5, 5, 4, 3, 2, 1], n: [5, 5, 4, 3, 2, 1], h: [5, 5, 4, 3, 2, 1], a: [5, 5, 4, 3, 2, 1] },
+    ranks: { e: [5, 5, 4, 3, 2, 1], n: [5, 5, 4, 3, 2, 1], h: [5, 5, 4, 3, 2, 1], ae: [6, 5, 4, 3, 2, 1], a: [6, 5, 4, 3, 2, 1], ah: [6, 5, 4, 3, 2, 1] },
     gen: gen,
     start: start,
     icon: function (c, t) {

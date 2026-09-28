@@ -18,7 +18,7 @@
     var tx = function (s) { return L(s); };
     T.list.forEach(function (tr) { tr.name = L(tr.name); if (tr.help) tr.help = L(tr.help); });
     DATA.CATS.forEach(function (c) { c.name = L(c.name); });
-    DATA.LEVELS.forEach(function (l) { l.name = L(l.name); });
+    DATA.LEVELS.forEach(function (l) { l.name = L(l.name); if (l.short) l.short = L(l.short); });
     DATA.ANIMALS.forEach(function (a) { a.name = L(a.name); a.fact = L(a.fact); });
     DATA.CHECK.forEach(function (c) { c.name = L(c.name); c.good = L(c.good); });
     DATA.SONGS.concat([DATA.SCALE]).forEach(function (g) { g.name = L(g.name); });
@@ -63,6 +63,7 @@
     return L('チェック');
   }
   function levelsFor() { return DATA.LEVELS.filter(function (l) { return !l.adult || isAdult(); }); }
+  function isAdultLevel(lv) { return lv === 'testA' || DATA.LEVELS.some(function (l) { return l.id === lv && l.adult; }); }
   function animalName(rank) { return DATA.ANIMALS[Math.max(0, Math.min(6, rank - 1))].name; }
   var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];   // (English calendar)
   function paren(t) { return t ? L('（{t}）', { t: t }) : ''; }
@@ -81,6 +82,7 @@
     if (x.k === 'jump') return L('とんだ {o}・タッチ {t}・ミス {m}', { o: x.o, t: x.t, m: x.m });
     if (x.k === 'pick') return L('あたり {h}・まちがい {w}（{n}まい）', { h: x.h, w: x.w, n: x.n });
     if (x.k === 'piano') return L('まちがい {m}かい・{time}', { m: x.m, time: time(x.t) });
+    if (x.k === 'memo') return L('おぼえた かず {s}・せいかい {a}もん（{b}もん）', { s: x.s, a: x.a, b: x.b });
     return '';
   }
   function resKeep(x) { return x && typeof x === 'object' ? JSON.stringify(x) : (x || ''); }
@@ -463,13 +465,13 @@
   function buildLevels() {
     var box = $('intro-levels'), rec = ud().rec[intro.tr.id] || {};
     box.innerHTML = '';
-    box.classList.toggle('four', levelsFor().length > 3);
+    box.classList.toggle('six', levelsFor().length > 3);   // (grown-ups: the children's row, then the grown-ups' row)
     levelsFor().forEach(function (l) {
       var b = document.createElement('button');
-      b.className = 'lv-btn' + (intro.level === l.id ? ' on' : '');
-      b.innerHTML = '<i class="dots">' + '●●●●'.slice(0, l.dots) + '</i>' + l.name;
+      b.className = 'lv-btn' + (l.adult ? ' adult' : '') + (intro.level === l.id ? ' on' : '');
+      b.innerHTML = '<i class="dots">' + '●●●'.slice(0, l.dots) + '</i>' + (l.adult ? '<small>' + L('おとな') + '</small>' + l.short : l.name);
       if (rec[l.id]) b.appendChild(animalCanvas(rec[l.id].rank, 34, 24));
-      else b.insertAdjacentHTML('beforeend', '<span style="height:24px"></span>');
+      else b.insertAdjacentHTML('beforeend', '<span class="noanimal"></span>');
       b.addEventListener('click', function () { S.play('select'); intro.level = l.id; buildLevels(); });
       box.appendChild(b);
     });
@@ -518,7 +520,8 @@
     var params = Object.assign({}, tr.levels[level] || tr.levels.n);
     if (opts.song) params.song = opts.song;
     if (opts.practice) Object.assign(params, tr.levels.practice || {}, { practice: true });   // (the piano practises its scale)
-    params.adult = level === 'a' || level === 'testA';
+    params.adult = isAdultLevel(level);
+    if (tr.pool) params.recent = C.recentOf(save, tr.pool);   // (what was shown lately comes last)
     run = {
       tr: tr, level: level, params: params, practice: !!opts.practice, check: opts.check || null, song: opts.song,
       state: 'count', countT: 0, t: 0, session: null, hand: null, done: false
@@ -540,6 +543,7 @@
     return {
       W: W, H: H, level: r.level, practice: r.practice, adult: r.params.adult, partner: ud().chara,
       rnd: Math.random, U: T.U,
+      used: function (ids) { if (r.tr.pool) { C.addRecent(save, r.tr.pool, ids); store(); } },   // (what this run shows)
       live: live,
       playing: function () { return live() && r.state === 'play'; },
       progress: function (i, n) { if (live()) setDots(i, n); },

@@ -1,6 +1,7 @@
 /* ピアノ (the original: 名曲演奏) — play a song by following the notes. The notes sit higher or lower
    by pitch, like a simple score. かんたん lights up the next key. The keys are always in colour; at
-   むずかしい and おとな the notes above are white, so their names have to be read.
+   むずかしい and おとな かんたん the notes above are white, so their names have to be read. From おとな ふつう on
+   the notes stand on a real staff without names, as in the original's score; おとな むずかしい has no names on the keys either.
    When the song is done, the whole song plays by itself as a reward. */
 (function (T) {
   'use strict';
@@ -19,6 +20,16 @@
     if (k === 7) { D.circle(c, x, y - size * 0.82, size * 0.16); D.paint(c, colored ? '#fff' : D.INK, colored ? D.INK : null, 2); }
   }
   var KEY_Y = 420, KEY_H = 206, KEY_W = 45;
+
+  // A note on the staff: a head (hollow for two beats or more), a stem, and a short line through the low ど.
+  function staffNote(c, D, n, x, y, colors) {
+    c.lineCap = 'round'; c.strokeStyle = D.INK;
+    if (n.k === 0) { c.beginPath(); c.moveTo(x - 24, y); c.lineTo(x + 24, y); c.lineWidth = 2; c.stroke(); }
+    var up = n.k < 6, sx = up ? x + 13 : x - 13;
+    c.beginPath(); c.moveTo(sx, y); c.lineTo(sx, y + (up ? -56 : 56)); c.lineWidth = 3; c.stroke();
+    D.ellipse(c, x, y, 15, 11, -0.35);
+    D.paint(c, n.len >= 2 ? '#fff' : colors ? KEY_COLORS[n.k] : D.INK, D.INK, 3);
+  }
 
   function parse(notes) {
     return notes.trim().split(/\s+/).map(function (tok) {
@@ -43,7 +54,7 @@
     var g = gen(p), notes = g.notes, i = 0, time = 0, mistakes = 0, phase = 'wait', pt = 0, since = 0, scroll = 0;
     var pressed = [0, 0, 0, 0, 0, 0, 0, 0], shake = [0, 0, 0, 0, 0, 0, 0, 0], auto = null, hak = { mode: 'idle', mt: 0 };
 
-    function noteY(k) { return 300 - k * 21; }
+    function noteY(k) { return 300 - k * (p.staff ? 18 : 21); }   // (on a staff the steps are smaller, so its five lines fit)
     function play(k) {
       api.piano(k, 0.7);
       pressed[k] = 0.16;
@@ -97,22 +108,26 @@
         // the road of notes
         D.roundRect(c, 12, 104, 336, 222, 26); D.paint(c, 'rgba(255,255,255,.82)', D.INK, 3);
         c.save(); D.roundRect(c, 12, 104, 336, 222, 26); c.clip();
-        c.strokeStyle = 'rgba(90,56,37,.12)'; c.lineWidth = 2;
-        for (var l = 0; l < 5; l++) { c.beginPath(); c.moveTo(12, 140 + l * 36); c.lineTo(348, 140 + l * 36); c.stroke(); }
+        // the five lines of a staff (E G B D F) for grown-ups, faint lines for the children
+        c.strokeStyle = p.staff ? D.INK : 'rgba(90,56,37,.12)'; c.lineWidth = 2;
+        for (var l = 0; l < 5; l++) { var ly = p.staff ? noteY(2 + l * 2) : 140 + l * 36; c.beginPath(); c.moveTo(12, ly); c.lineTo(348, ly); c.stroke(); }
         var X0 = 110, STEP = 58;
         for (var j = Math.max(0, i - 2); j < Math.min(notes.length, i + 6); j++) {
           var n = notes[j], x = X0 + (j - scroll) * STEP, y = noteY(n.k), past = j < i;
           c.save(); c.globalAlpha = past ? 0.35 : 1;
-          D.circle(c, x, y, 21); D.paint(c, p.colors ? KEY_COLORS[n.k] : '#fff', D.INK, 3);
-          noteName(c, A, D, n.k, x, y + 2, 18, p.colors);
-          if (n.len >= 2) { c.beginPath(); c.moveTo(x + 22, y); c.lineTo(x + 22 + (n.len - 1) * 16, y); D.paint(c, null, p.colors ? KEY_COLORS[n.k] : D.INK, 5); }
+          if (p.staff) staffNote(c, D, n, x, y, p.colors);
+          else {
+            D.circle(c, x, y, 21); D.paint(c, p.colors ? KEY_COLORS[n.k] : '#fff', D.INK, 3);
+            noteName(c, A, D, n.k, x, y + 2, 18, p.colors);
+            if (n.len >= 2) { c.beginPath(); c.moveTo(x + 22, y); c.lineTo(x + 22 + (n.len - 1) * 16, y); D.paint(c, null, p.colors ? KEY_COLORS[n.k] : D.INK, 5); }
+          }
           c.restore();
         }
         c.restore();
         // ケロちゃん points at the next note
         if (phase === 'play' && notes[i]) {
           var ny = noteY(notes[i].k);
-          c.save(); c.translate(X0 + (i - scroll) * STEP, ny - 44 + Math.sin(clock * 5) * 3); c.scale(0.28, 0.28);
+          c.save(); c.translate(X0 + (i - scroll) * STEP, ny - (p.staff && notes[i].k < 6 ? 70 : 44) + Math.sin(clock * 5) * 3); c.scale(0.28, 0.28);
           D.critter(c, { x: 0, y: -40, t: clock, kind: 'frog', noSeat: true, look: { x: 0, y: 200 }, mode: 'idle' });
           c.restore();
         }
@@ -129,7 +144,7 @@
             c.restore();
             D.hand(c, kx + KEY_W / 2 + 4, KEY_Y + 110 + Math.sin(clock * 8) * 4, 0.8, false);
           }
-          noteName(c, A, D, k, kx + KEY_W / 2 + sx, KEY_Y + KEY_H - 24 + (down ? 4 : 0), 21, true);
+          if (!p.bare) noteName(c, A, D, k, kx + KEY_W / 2 + sx, KEY_Y + KEY_H - 24 + (down ? 4 : 0), 21, true);
         }
         c.save(); c.translate(318, 386); c.scale(0.42, 0.42);
         D.critter(c, { x: 0, y: 0, t: clock, kind: 'frog', look: { x: -300, y: 0 }, mode: hak.mode, mt: hak.mt, wear: A.hakase, noSeat: true });
@@ -148,18 +163,22 @@
   T.register({
     id: 'piano', name: 'ピアノ', orig: '名曲演奏', kind: 'time', songs: true,
     help: 'うえの おんぷと おなじ けんばんを\nじゅんばんに おしてね！\nさいごに きょくを ぜんぶ きけるよ',
-    // colors: the notes above in the keys' colours (the keys themselves always are)
+    // colors: the notes above in the keys' colours (the keys themselves always are); staff: notes on a staff, no names;
+    // bare: no names on the keys
     levels: {
       e: { glow: true, colors: true },
       n: { glow: false, colors: true },
       h: { glow: false, colors: false },
-      a: { glow: false, colors: false, repeat: 2 },
+      ae: { glow: false, colors: false },
+      a: { glow: false, colors: false, staff: true },
+      ah: { glow: false, colors: false, staff: true, bare: true, repeat: 2 },
       practice: { song: 'scale', glow: true, colors: true }
     },
     // seconds per note, including 2 seconds for each wrong key
     ranks: {
       e: [0.55, 0.7, 0.9, 1.15, 1.5, 2.0], n: [0.7, 0.9, 1.1, 1.4, 1.8, 2.4],
-      h: [0.8, 1.0, 1.25, 1.6, 2.0, 2.7], a: [0.55, 0.7, 0.85, 1.05, 1.3, 1.7]
+      h: [0.8, 1.0, 1.25, 1.6, 2.0, 2.7],
+      ae: [0.5, 0.65, 0.8, 1.0, 1.3, 1.7], a: [0.7, 0.85, 1.05, 1.3, 1.65, 2.2], ah: [0.8, 1.0, 1.25, 1.55, 2.0, 2.7]
     },
     gen: gen, parse: parse,
     start: start,

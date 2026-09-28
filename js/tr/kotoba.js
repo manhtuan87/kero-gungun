@@ -5,10 +5,11 @@
   var U = T.U, G = typeof window !== 'undefined' ? window : {};
   var DATA = typeof Data !== 'undefined' ? Data : require('../data.js');
 
-  // p: { q, len: [a, b], dummy }
+  // p: { q, len: [a, b], dummy, recent (pictures shown lately: they come last) }
   function gen(p, r) {
     var words = DATA.PICS.filter(function (x) { return x.name.length >= p.len[0] && x.name.length <= p.len[1]; });
-    return U.sample(r, words, Math.min(p.q, words.length)).map(function (w) {
+    var ids = U.fresh(r, words.map(function (w) { return w.id; }), Math.min(p.q, words.length), p.recent);
+    return ids.map(function (id) { return words.filter(function (w) { return w.id === id; })[0]; }).map(function (w) {
       var letters = w.name.split(''), dummies = [];
       while (dummies.length < p.dummy) {
         var ch = DATA.KANA.charAt(U.int(r, 0, DATA.KANA.length - 1));
@@ -22,6 +23,7 @@
     var D = G.Draw, A = G.Art, P = G.Pics;
     var qs = gen(p, api.rnd), qi = -1, Q = null, filled = 0, used = [], phase = 'wait', pt = 0, time = 0, mistakes = 0, since = 0;
     var ch = null, maxTiles = 0, letters = 0;
+    api.used(qs.map(function (q) { return q.id; }));
     qs.forEach(function (q) { maxTiles = Math.max(maxTiles, q.tiles.length); letters += q.word.length; });
     var cols = maxTiles > 8 ? 5 : maxTiles > 5 ? 4 : maxTiles, rows = Math.ceil(maxTiles / cols);
 
@@ -102,17 +104,19 @@
   }
 
   T.register({
-    id: 'kotoba', name: 'ことば つくり', orig: '漢字合成', kind: 'time',
+    id: 'kotoba', name: 'ことば つくり', orig: '漢字合成', kind: 'time', pool: 'pics',
     help: 'えを みて なまえの もじを\nじゅんばんに タッチしてね！',
     levels: {
       e: { q: 6, len: [2, 2], dummy: 0 },
       n: { q: 6, len: [3, 3], dummy: 1 },
       h: { q: 6, len: [4, 5], dummy: 2 },
+      ae: { q: 6, len: [3, 4], dummy: 2 },
       a: { q: 8, len: [3, 5], dummy: 3 },
+      ah: { q: 7, len: [4, 6], dummy: 4 },   // (7 until there are more long words)
       practice: { q: 2, len: [2, 2], dummy: 0 }
     },
     ranks: {
-      e: [10, 13, 17, 22, 30, 42], n: [16, 20, 25, 32, 42, 58], h: [24, 30, 38, 48, 62, 85], a: [20, 24, 29, 35, 43, 55]
+      e: [10, 13, 17, 22, 30, 42], n: [16, 20, 25, 32, 42, 58], h: [24, 30, 38, 48, 62, 85], ae: [14, 17, 21, 26, 33, 43], a: [20, 24, 29, 35, 43, 55], ah: [28, 34, 41, 50, 62, 80]
     },
     gen: gen,
     start: start,

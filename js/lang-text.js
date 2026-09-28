@@ -47,6 +47,9 @@ Lang.add({
   'かんたん': ['Dễ', 'Easy', '쉬움'],
   'ふつう': ['Vừa', 'Normal', '보통'],
   'むずかしい': ['Khó', 'Hard', '어려움'],
+  'おとな かんたん': ['Người lớn · Dễ', 'Grown-up · Easy', '어른 · 쉬움'],
+  'おとな ふつう': ['Người lớn · Vừa', 'Grown-up · Normal', '어른 · 보통'],
+  'おとな むずかしい': ['Người lớn · Khó', 'Grown-up · Hard', '어른 · 어려움'],
   'はやさ': ['Tốc độ', 'Speed', '속도'],
   'きおく': ['Trí nhớ', 'Memory', '기억력'],
   'がまん・しゅうちゅう': ['Kiên nhẫn · Tập trung', 'Self-control · Focus', '참을성 · 집중력'],
@@ -123,6 +126,7 @@ Lang.add({
   'えの なまえを つくろう！': ['Ghép tên của hình nào!', "Spell the picture's name!", '그림의 이름을 만들자!'],
   '{word}！': ['{word}!', '{word}!', '{word}!'],
   'たて・よこ・へやに おなじ たまごは 1つ！': ['Mỗi hàng, cột, phòng: mỗi loại trứng một quả!', 'One of each egg in every row, column and room!', '가로·세로·방마다 같은 알은 하나!'],
+  'たて・よこ・へやに おなじ すうじは 1つ！': ['Mỗi hàng, cột, phòng: mỗi số một lần!', 'One of each number in every row, column and room!', '가로·세로·방마다 같은 숫자는 하나!'],
   'あいてる マスを タッチ！': ['Chạm vào ô trống!', 'Tap an empty square!', '빈칸을 터치!'],
   'おぼえた！': ['Nhớ rồi!', 'Got it!', '기억했어!'],
   'この えを おぼえてね！': ['Nhớ các hình này nhé!', 'Remember these pictures!', '이 그림들을 기억해!'],
@@ -136,6 +140,8 @@ Lang.add({
   '・まちがい {n}': [' · sai {n}', ' · {n} wrong', ' · 실수 {n}'],
   '{a}もん せいかい（{b}もん）': ['Đúng {a}/{b} câu', '{a} of {b} right', '{b}문제 중 {a}개 정답'],
   'とんだ {o}・タッチ {t}・ミス {m}': ['Nhảy {o} · Chạm {t} · Lỗi {m}', 'Jumps {o} · Taps {t} · Misses {m}', '점프 {o} · 터치 {t} · 실수 {m}'],
+  'おぼえた かず {s}・せいかい {a}もん（{b}もん）': ['Nhớ được {s} · Đúng {a}/{b} câu', 'Remembered {s} · {a} of {b} right', '기억한 수 {s} · {b}문제 중 {a}개 정답'],
+  'ちいさい じゅんに タッチ！': ['Chạm từ số nhỏ nhất!', 'Tap from the smallest!', '작은 수부터 터치!'],
   'あたり {h}・まちがい {w}（{n}まい）': ['Đúng {h} · Sai {w} ({n} hình)', '{h} right · {w} wrong ({n} pictures)', '맞음 {h} · 틀림 {w} ({n}장)'],
   'まちがい {m}かい・{time}': ['Sai {m} lần · {time}', '{m} mistakes · {time}', '실수 {m}번 · {time}'],
   'リストへ': ['Danh sách', 'List', '목록으로'],
@@ -323,7 +329,7 @@ var GUNGUN_LANG = {
       strawberry: 'dâu', egg: 'trứng', frog: 'ếch', rabbit: 'thỏ', grapes: 'nho', mandarin: 'quýt', fish: 'cá',
       hat: 'mũ', car: 'xe', balloon: 'bóng', pencil: 'bút', snail: 'ốc'
     },
-    len: { e: [2, 3], n: [3, 3], h: [3, 5], a: [3, 5], practice: [2, 2] }
+    len: { e: [2, 3], n: [3, 3], h: [3, 5], ae: [3, 4], a: [3, 5], ah: [3, 5], practice: [2, 2] }
   },
   en: {
     keys: ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C'],
@@ -335,7 +341,7 @@ var GUNGUN_LANG = {
       egg: 'EGG', chick: 'CHICK', frog: 'FROG', rabbit: 'RABBIT', grapes: 'GRAPES', mandarin: 'ORANGE', fish: 'FISH',
       hat: 'HAT', car: 'CAR', balloon: 'BALLOON', mitten: 'MITTEN', pencil: 'PENCIL', snail: 'SNAIL', cherry: 'CHERRY'
     },
-    len: { e: [3, 4], n: [4, 5], h: [5, 6], a: [5, 7], practice: [3, 3] }
+    len: { e: [3, 4], n: [4, 5], h: [5, 6], ae: [4, 5], a: [5, 7], ah: [6, 6], practice: [3, 3] }
   },
   ko: {
     keys: ['도', '레', '미', '파', '솔', '라', '시', '도'],
@@ -348,6 +354,6 @@ var GUNGUN_LANG = {
       grapes: '포도', mandarin: '귤', fish: '물고기', hat: '모자', car: '자동차', riceball: '주먹밥', balloon: '풍선',
       sunflower: '해바라기', mitten: '장갑', pencil: '연필', snail: '달팽이', cherry: '체리'
     },
-    len: { e: [2, 2], n: [3, 3], h: [3, 4], a: [2, 4], practice: [2, 2] }
+    len: { e: [2, 2], n: [3, 3], h: [3, 4], ae: [2, 3], a: [2, 4], ah: [3, 4], practice: [2, 2] }
   }
 };

@@ -7,7 +7,7 @@
   function pool() { return G.Pics ? G.Pics.ids : require('../data.js').PICS.map(function (x) { return x.id; }); }
   // p: { show (pictures to remember), total (pictures to choose from), time (seconds to look) }
   function gen(p, r, ids) {
-    var all = U.sample(r, ids || pool(), p.total);
+    var all = U.fresh(r, ids || pool(), p.total, p.recent);   // (pictures shown lately come last)
     return { targets: all.slice(0, p.show), grid: U.shuffle(r, all) };
   }
   function layout(n, top, bottom) {
@@ -22,6 +22,7 @@
     var D = G.Draw, A = G.Art, P = G.Pics;
     var g = gen(p, api.rnd), phase = 'wait', pt = 0, chosen = [], hits = 0, wrong = 0, clock = 0;
     var showCells = layout(g.targets.length, 130, 470), gridCells = layout(g.grid.length, 120, 560);
+    api.used(g.targets);
     var doneBtn = null;
 
     function recall() {
@@ -105,7 +106,7 @@
   }
 
   T.register({
-    id: 'nanika', name: 'なにが あった？', orig: '単語記憶テスト', kind: 'count', checkOnly: true,
+    id: 'nanika', name: 'なにが あった？', orig: '単語記憶テスト', kind: 'count', checkOnly: true, pool: 'pics',
     help: 'えを よく おぼえてね！\nそのあと たくさんの えの なかから\nみた えを えらぶよ',
     levels: {
       test: { show: 6, total: 12, time: 15 },

@@ -1,6 +1,6 @@
 /* さっきの え (the original: 直前写真) — pictures come one at a time; tap the one shown just before.
    かんたん: remember the picture you just saw. むずかしい: the picture on screen is among the choices too.
-   Grown-ups: the picture from two before. */
+   Grown-ups: the picture from one or two before; at おとな むずかしい the picture in between is among the choices too. */
 (function (T) {
   'use strict';
   var U = T.U, G = typeof window !== 'undefined' ? window : {};
@@ -8,10 +8,12 @@
 
   function pool() { return G.Pics ? G.Pics.ids : require('../data.js').PICS.map(function (x) { return x.id; }); }
 
-  /* p: { mode: 'now' | 'prev' | 'prev2', q, k (choices), trick }
+  /* p: { mode: 'now' | 'prev' | 'prev2', q, k (choices), trick (the picture on screen is a choice too), trick2 (and the one
+     in between), recent (pictures shown lately: they come last) }
      Returns { seq, back, qs: [{ cur, answer, choices: [ids], right (index) }] } */
   function gen(p, r, ids) {
-    ids = ids || pool();
+    var all = ids || pool();
+    ids = U.fresh(r, all, Math.min(all.length, p.q + 10), p.recent);   // (the pictures of this run)
     var back = p.mode === 'prev2' ? 2 : p.mode === 'prev' ? 1 : 0, seq = [];
     while (seq.length < p.q + back) {
       var id = U.pick(r, ids);
@@ -22,6 +24,7 @@
     for (var j = 0; j < p.q; j++) {
       var cur = seq[j + back], ans = seq[j], ch = [ans];
       if (p.trick && cur !== ans) ch.push(cur);
+      if (p.trick2 && back === 2 && ch.indexOf(seq[j + 1]) < 0 && seq[j + 1] !== cur) ch.push(seq[j + 1]);
       while (ch.length < p.k) {
         var d = U.pick(r, ids);
         if (ch.indexOf(d) < 0 && d !== cur) ch.push(d);
@@ -35,6 +38,7 @@
   function start(api, p) {
     var D = G.Draw, A = G.Art, P = G.Pics;
     var g = gen(p, api.rnd), j = -1, shownI = -1, phase = 'wait', pt = 0, correct = 0, since = 0, flip = 0, slide = 1;
+    api.used(g.seq);
     var blank = { draw: function () {} };
     var items = [];
     for (var b = 0; b < p.k; b++) items.push(blank);
@@ -127,16 +131,19 @@
   }
 
   T.register({
-    id: 'sakki', name: 'さっきの え', orig: '直前写真', kind: 'count',
+    id: 'sakki', name: 'さっきの え', orig: '直前写真', kind: 'count', pool: 'pics',
     help: 'えが 1まいずつ でてくるよ\nひとつ まえに でた えを\nしたから えらんでね！',
     levels: {
       e: { mode: 'now', q: 10, k: 3, show: 2.0 },
       n: { mode: 'prev', q: 10, k: 3 },
       h: { mode: 'prev', q: 10, k: 4, trick: true },
+      ae: { mode: 'prev', q: 12, k: 4, trick: true },
       a: { mode: 'prev2', q: 12, k: 4, trick: true },
+      ah: { mode: 'prev2', q: 15, k: 5, trick: true, trick2: true },
       practice: { q: 3 }
     },
-    ranks: { e: [10, 9, 8, 7, 5, 3], n: [10, 9, 8, 7, 5, 3], h: [10, 9, 8, 7, 5, 3], a: [12, 11, 10, 8, 6, 4] },
+    ranks: { e: [10, 9, 8, 7, 5, 3], n: [10, 9, 8, 7, 5, 3], h: [10, 9, 8, 7, 5, 3],
+      ae: [12, 11, 10, 8, 6, 4], a: [12, 11, 10, 8, 6, 4], ah: [15, 14, 12, 10, 8, 5] },
     gen: gen,
     start: start,
     icon: function (c, t) {

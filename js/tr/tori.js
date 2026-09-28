@@ -130,10 +130,12 @@
       e: { q: 5, birds: [2, 5], others: 3, move: 0 },
       n: { q: 5, birds: [3, 8], others: 6, move: 1 },
       h: { q: 5, birds: [4, 10], others: 8, move: 2 },
+      ae: { q: 5, birds: [5, 10], others: 10, move: 2 },
       a: { q: 5, birds: [6, 14], others: 12, move: 2, hideAfter: 5 },
+      ah: { q: 5, birds: [8, 16], others: 16, move: 2, hideAfter: 4 },
       practice: { q: 2, birds: [2, 3], others: 2, move: 0 }
     },
-    ranks: { e: [5, 5, 4, 3, 2, 1], n: [5, 5, 4, 3, 2, 1], h: [5, 5, 4, 3, 2, 1], a: [5, 5, 4, 3, 2, 1] },
+    ranks: { e: [5, 5, 4, 3, 2, 1], n: [5, 5, 4, 3, 2, 1], h: [5, 5, 4, 3, 2, 1], ae: [5, 5, 4, 3, 2, 1], a: [5, 5, 4, 3, 2, 1], ah: [5, 5, 4, 3, 2, 1] },
     gen: gen, scene: scene, place: place, drawForest: drawForest, drawThing: drawThing,
     start: start,
     icon: function (c, t) {

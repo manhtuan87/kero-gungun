@@ -1,11 +1,12 @@
-/* えあわせ すうどく (the original: 数独) — a 4 x 4 grid of eggs (6 x 6 for grown-ups).
-   Every row, column and box holds each colour once. Tap an empty cell, then the egg for it.
+/* えあわせ すうどく (the original: 数独) — a 4 x 4 grid of eggs; grown-ups play the original's 9 x 9 with numbers
+   (おとな かんたん・ふつう・むずかしい = 初級・中級・上級, by the number of empty cells).
+   Every row, column and box holds each colour (number) once. Tap an empty cell, then the egg for it.
    Only puzzles with exactly one answer are used. */
 (function (T) {
   'use strict';
   var U = T.U, G = typeof window !== 'undefined' ? window : {};
 
-  function boxOf(size) { return size === 6 ? { w: 3, h: 2 } : { w: 2, h: 2 }; }
+  function boxOf(size) { return size === 9 ? { w: 3, h: 3 } : size === 6 ? { w: 3, h: 2 } : { w: 2, h: 2 }; }
   function okAt(g, size, bx, idx, v) {
     var r = Math.floor(idx / size), c = idx % size;
     for (var k = 0; k < size; k++) { if (g[r * size + k] === v || g[k * size + c] === v) return false; }
@@ -23,14 +24,20 @@
     }
     return false;
   }
-  // Number of solutions, counting at most `limit`.
+  // Number of solutions, counting at most `limit` (the empty cell with the fewest choices first, so 9 x 9 is quick too).
   function count(g, size, bx, limit) {
-    var idx = g.indexOf(0);
-    if (idx < 0) return 1;
-    var n = 0;
-    for (var v = 1; v <= size && n < limit; v++) {
-      if (okAt(g, size, bx, idx, v)) { g[idx] = v; n += count(g, size, bx, limit - n); g[idx] = 0; }
+    var best = -1, vals = null;
+    for (var idx = 0; idx < g.length; idx++) {
+      if (g[idx] !== 0) continue;
+      var can = [];
+      for (var v = 1; v <= size; v++) if (okAt(g, size, bx, idx, v)) can.push(v);
+      if (!can.length) return 0;
+      if (!vals || can.length < vals.length) { best = idx; vals = can; if (can.length === 1) break; }
     }
+    if (best < 0) return 1;
+    var n = 0;
+    for (var i = 0; i < vals.length && n < limit; i++) { g[best] = vals[i]; n += count(g, size, bx, limit - n); }
+    g[best] = 0;
     return n;
   }
   function puzzle(size, blanks, r) {
@@ -56,12 +63,15 @@
     var qs = gen(p, api.rnd), qi = -1, Q = null, grid = null, sel = -1, held = 0, time = 0, mistakes = 0, phase = 'wait', pt = 0, since = 0;
     var blanks = qs.reduce(function (n, q) { return n + q.grid.filter(function (v) { return v === 0; }).length; }, 0);   // cells to fill
     var pops = {}, clock = 0, chicks = [];
-    var size = p.size, cell = size === 6 ? 50 : 70, gx = (360 - cell * size) / 2, gy = 104;
+    var size = p.size, nums = size === 9, cell = nums ? 36 : size === 6 ? 50 : 70, gx = (360 - cell * size) / 2, gy = 104;
     var items = [];
     for (var v = 1; v <= size; v++) {
-      (function (val) { items.push({ draw: function (c, w, h) { D.egg(c, val - 1, w / 2, h / 2, Math.min(w, h) * 0.34, 0, 0); } }); }(v));
+      (function (val) {
+        items.push(nums ? { label: String(val), size: 30 } : { draw: function (c, w, h) { D.egg(c, val - 1, w / 2, h / 2, Math.min(w, h) * 0.34, 0, 0); } });
+      }(v));
     }
-    var pal = api.choices(items, pick, { top: size === 6 ? 440 : 470, h: size === 6 ? 70 : 84, cols: size === 6 ? 3 : 4, gap: 10, left: 22, right: 22 });
+    var pal = api.choices(items, pick, nums ? { top: 446, h: 60, cols: 5, gap: 8, left: 16, right: 16 } :
+      { top: size === 6 ? 440 : 470, h: size === 6 ? 70 : 84, cols: size === 6 ? 3 : 4, gap: 10, left: 22, right: 22 });
 
     function next() {
       qi++;
@@ -84,8 +94,9 @@
           phase = 'done'; pt = 0;
           api.ok(180, gy + cell * size / 2, 80);
           for (var k = 0; k < grid.length; k++) {
+            if (nums && k % 7) continue;   // (9 x 9: a few chicks, not 81)
             var cx = gx + (k % size + 0.5) * cell, cy = gy + (Math.floor(k / size) + 0.5) * cell;
-            chicks.push({ x: cx, y: cy, vy: -80 - Math.random() * 60, t: -Math.random() * 0.4, shell: grid[k] - 1 });
+            chicks.push({ x: cx, y: cy, vy: -80 - Math.random() * 60, t: -Math.random() * 0.4, shell: (grid[k] - 1) % 6 });
           }
           api.sfx('crack', 3);
           api.progress(qi + 1, qs.length);
@@ -120,17 +131,21 @@
         } else if (phase === 'done' && pt > 1.6) next();
       },
       draw: function (c) {
-        A.text(c, L('たて・よこ・へやに おなじ たまごは 1つ！'), 180, 84, 17, '#fff', { lw: 5 });
+        A.text(c, L(nums ? 'たて・よこ・へやに おなじ すうじは 1つ！' : 'たて・よこ・へやに おなじ たまごは 1つ！'), 180, 84, 17, '#fff', { lw: 5 });
         if (!Q) return;
         var W2 = cell * size;
         D.roundRect(c, gx - 6, gy - 6, W2 + 12, W2 + 12, 16); D.paint(c, '#fffdf5', D.INK, 4);
         for (var k = 0; k < grid.length; k++) {
           var r0 = Math.floor(k / size), c0 = k % size, x = gx + c0 * cell, y = gy + r0 * cell;
           var given = Q.grid[k] !== 0;
-          D.roundRect(c, x + 3, y + 3, cell - 6, cell - 6, 10);
+          var pad = nums ? 1.5 : 3, rad = nums ? 5 : 10;
+          D.roundRect(c, x + pad, y + pad, cell - pad * 2, cell - pad * 2, rad);
           D.paint(c, given ? '#f3ecdf' : k === sel && phase === 'play' ? '#fff3a6' : '#ffffff');
-          if (k === sel && phase === 'play') { c.save(); c.globalAlpha = 0.6 + 0.4 * Math.sin(clock * 6); D.roundRect(c, x + 3, y + 3, cell - 6, cell - 6, 10); D.paint(c, null, '#ffb347', 4); c.restore(); }
-          if (grid[k] && phase !== 'done') {
+          if (k === sel && phase === 'play') { c.save(); c.globalAlpha = 0.6 + 0.4 * Math.sin(clock * 6); D.roundRect(c, x + pad, y + pad, cell - pad * 2, cell - pad * 2, rad); D.paint(c, null, '#ffb347', nums ? 3 : 4); c.restore(); }
+          if (grid[k] && nums) {   // (grown-ups: the given numbers in brown, the ones filled in in blue)
+            var pn = pops[k] != null ? Math.min(1, pops[k] / 0.2) : 1;
+            A.text(c, String(grid[k]), x + cell / 2, y + cell / 2 + 1, cell * (0.5 + 0.12 * Math.sin(pn * Math.PI)), given ? D.INK : '#2f7fd6', { stroke: false });
+          } else if (grid[k] && phase !== 'done') {
             var pk = pops[k] != null ? Math.min(1, pops[k] / 0.2) : 1, s = 0.5 + 0.5 * pk + Math.sin(pk * Math.PI) * 0.15;
             c.save(); c.translate(x + cell / 2, y + cell / 2); c.scale(s, s);
             D.egg(c, grid[k] - 1, 0, 0, cell * 0.33, clock, 0);
@@ -140,7 +155,7 @@
           }
         }
         // the lines between boxes
-        c.strokeStyle = D.INK; c.lineWidth = 3.5; c.lineCap = 'round';
+        c.strokeStyle = D.INK; c.lineWidth = nums ? 2.5 : 3.5; c.lineCap = 'round';
         for (var bxI = Q.box.w; bxI < size; bxI += Q.box.w) { c.beginPath(); c.moveTo(gx + bxI * cell, gy); c.lineTo(gx + bxI * cell, gy + W2); c.stroke(); }
         for (var byI = Q.box.h; byI < size; byI += Q.box.h) { c.beginPath(); c.moveTo(gx, gy + byI * cell); c.lineTo(gx + W2, gy + byI * cell); c.stroke(); }
         chicks.forEach(function (ch) { if (ch.t > 0) D.chick(c, ch.x, ch.y, size === 6 ? 0.6 : 0.8, clock, { fly: true, flap: ch.t * 26, shell: ch.shell, happy: true }); });
@@ -171,11 +186,14 @@
       e: { q: 2, size: 4, blanks: 4 },
       n: { q: 2, size: 4, blanks: 7 },
       h: { q: 2, size: 4, blanks: 10 },
-      a: { q: 1, size: 6, blanks: [16, 18] },
+      ae: { q: 1, size: 9, blanks: [40, 44] },
+      a: { q: 1, size: 9, blanks: [46, 50] },
+      ah: { q: 1, size: 9, blanks: [52, 55] },
       practice: { q: 1, size: 4, blanks: 2 }
     },
     ranks: {
-      e: [16, 22, 30, 40, 55, 75], n: [30, 40, 52, 68, 90, 120], h: [45, 60, 78, 100, 130, 170], a: [60, 80, 105, 135, 175, 230]
+      e: [16, 22, 30, 40, 55, 75], n: [30, 40, 52, 68, 90, 120], h: [45, 60, 78, 100, 130, 170],
+      ae: [240, 330, 450, 600, 800, 1100], a: [360, 480, 630, 840, 1100, 1500], ah: [540, 720, 960, 1260, 1680, 2280]
     },
     gen: gen, puzzle: puzzle, count: count, okAt: okAt, boxOf: boxOf,
     start: start,

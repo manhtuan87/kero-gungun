@@ -8,9 +8,12 @@
   'use strict';
 
   var KEY = 'kero-gungun-v1';
-  var MAX_USERS = 4, HIST = 60, NAME_MAX = 10;
+  var MAX_USERS = 4, HIST = 60, NAME_MAX = 10, RECENT = 80;
   var COLORS = ['#86d65c', '#ff8fc0', '#6cc6ff', '#ffb347', '#b58cff', '#ffd23d'];
-  var LEVEL_IDS = ['e', 'n', 'h', 'a'];
+  var LEVEL_IDS = ['e', 'n', 'h', 'ae', 'a', 'ah'];
+  // Trainings whose おとな (ふつう) level got a new kind of score with the three grown-up levels (2026-09-29, lvv 2):
+  // their old おとな records are left out once, so an old 6 x 6 sudoku time is not taken for a 9 x 9 one.
+  var OLD_A = ['patto', 'sudoku', 'piano', 'nannin'];
 
   // ---------------------------------------------------------------- dates (the phone's own clock)
 
@@ -23,10 +26,10 @@
 
   // ---------------------------------------------------------------- a fresh save
 
-  function newData() { return { days: {}, rec: {}, lv: {}, seen: {}, song: '', spent: 0, owned: ['frog'], chara: 'frog' }; }
+  function newData() { return { days: {}, rec: {}, lv: {}, seen: {}, song: '', spent: 0, owned: ['frog'], chara: 'frog', recent: {} }; }
   function fresh() {
     return {
-      v: 1, sfx: true, music: true, voice: true, all: false, stopAfter: 3, handicap: 2, intro: false,
+      v: 1, lvv: 2, sfx: true, music: true, voice: true, all: false, stopAfter: 3, handicap: 2, intro: false,
       users: [{ id: 'u1', name: '', type: 'kid', color: 0 }], cur: 'u1', next: 2,
       data: { u1: newData() }
     };
@@ -39,7 +42,7 @@
   function clampInt(v, a, b) { return Math.max(a, Math.min(b, Math.round(num(v, a)))); }
   function isDay(k) { return /^\d{4}-\d\d-\d\d$/.test(k); }
 
-  function cleanData(d) {
+  function cleanData(d, oldLevels) {
     d = obj(d);
     var out = newData();
     var days = obj(d.days);
@@ -62,7 +65,7 @@
     Object.keys(rec).forEach(function (id) {
       var r = obj(rec[id]), o = {};
       Object.keys(r).forEach(function (lv) {
-        if (LEVEL_IDS.indexOf(lv) < 0) return;
+        if (LEVEL_IDS.indexOf(lv) < 0 || (oldLevels && lv === 'a' && OLD_A.indexOf(id) >= 0)) return;
         var x = obj(r[lv]);
         if (typeof x.best !== 'number' || !isFinite(x.best)) return;
         o[lv] = {
@@ -79,6 +82,10 @@
     Object.keys(lv).forEach(function (id) { if (LEVEL_IDS.indexOf(lv[id]) >= 0) out.lv[id] = lv[id]; });
     var seen = obj(d.seen);
     Object.keys(seen).forEach(function (id) { if (seen[id]) out.seen[id] = true; });
+    var recent = obj(d.recent);
+    Object.keys(recent).forEach(function (k) {
+      if (Array.isArray(recent[k])) out.recent[k] = recent[k].filter(function (x) { return typeof x === 'string'; }).slice(-RECENT);
+    });
     if (typeof d.song === 'string') out.song = d.song.slice(0, 20);
     out.spent = clampInt(d.spent, 0, 1e6);
     if (Array.isArray(d.owned)) {
@@ -103,7 +110,7 @@
         id: u.id, name: typeof u.name === 'string' ? u.name.slice(0, NAME_MAX) : '',
         type: u.type === 'adult' ? 'adult' : 'kid', color: clampInt(u.color, 0, COLORS.length - 1)
       });
-      data[u.id] = cleanData(obj(s.data)[u.id]);
+      data[u.id] = cleanData(obj(s.data)[u.id], s.lvv !== 2);
     });
     if (users.length) { out.users = users; out.data = data; }
     out.cur = data[s.cur] ? s.cur : out.users[0].id;
@@ -244,6 +251,17 @@
     return res;
   }
 
+  // ---------------------------------------------------------------- questions shown lately
+
+  // Pictures (and the like) shown lately, the latest last: the next runs pick others first, so a pool is used up
+  // before anything comes back.
+  function recentOf(s, key) { return (udata(s).recent[key] || []).slice(); }
+  function addRecent(s, key, ids) {
+    var u = udata(s), r = u.recent[key] || (u.recent[key] = []);
+    ids.forEach(function (id) { id = String(id); var i = r.indexOf(id); if (i >= 0) r.splice(i, 1); r.push(id); });
+    if (r.length > RECENT) r.splice(0, r.length - RECENT);
+  }
+
   // ---------------------------------------------------------------- the shop
 
   function starsEarned(u) {
@@ -260,6 +278,7 @@
     rankOf: rankOf, starsOf: starsOf, better: better,
     stampCount: stampCount, stampDays: stampDays, isOpen: isOpen, songOpen: songOpen, nextUnlock: nextUnlock, trainingInfo: trainingInfo,
     addRun: addRun, addCheck: addCheck, checkedToday: checkedToday, brainAge: brainAge,
+    recentOf: recentOf, addRecent: addRecent,
     starsEarned: starsEarned, wallet: wallet
   };
 }));

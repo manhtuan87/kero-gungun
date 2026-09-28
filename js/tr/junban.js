@@ -142,14 +142,17 @@
       e: { boards: 2, seq: 'num', n: 8 },
       n: { boards: 2, seq: 'num', n: 12 },
       h: { boards: 2, seq: 'alt', n: 10 },
+      ae: { boards: 2, seq: 'num', n: 16 },
       a: { boards: 2, seq: 'alt', n: 16 },
+      ah: { boards: 2, seq: 'alt', n: 20 },
       test: { boards: 1, seq: 'num', n: 12 },
       testA: { boards: 1, seq: 'alt', n: 16 },
       practice: { boards: 1, seq: 'num', n: 5 }
     },
     ranks: {
       e: [14, 18, 23, 29, 37, 50], n: [22, 28, 35, 44, 56, 75], h: [26, 33, 42, 53, 68, 90],
-      a: [22, 27, 33, 40, 50, 65], test: [11, 14, 18, 23, 29, 38], testA: [11, 14, 17, 21, 26, 34]
+      ae: [20, 25, 31, 38, 48, 62], a: [22, 27, 33, 40, 50, 65], ah: [30, 37, 45, 55, 68, 88],
+      test: [11, 14, 18, 23, 29, 38], testA: [11, 14, 17, 21, 26, 34]
     },
     gen: gen, labels: labels,
     start: start,
