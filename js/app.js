@@ -61,6 +61,7 @@
     return { x0: x0, y0: y0, x1: x0 + view.cw / view.s, y1: y0 + view.ch / view.s };
   }
   function drawBackground(theme) {
+    if (!(view.s > 0)) return;   // (a window with no size yet)
     if (!bg.canvas || bg.theme !== theme) {
       bg.canvas = document.createElement('canvas');
       bg.canvas.width = canvas.width; bg.canvas.height = canvas.height;
@@ -251,6 +252,7 @@
     chip.classList.toggle('single', save.users.length < 2);
     chip.innerHTML = '<i style="background:' + C.COLORS[u.color] + '"></i>' + esc(nameOf(u) || 'なまえなし');
     $('shop-badge').innerHTML = icon('star') + C.wallet(ud());
+    $('credit').textContent = V.credit ? 'こえ：' + V.credit : '';
     refreshToggles();
   }
 
@@ -258,14 +260,18 @@
     refreshTitle();
     var u = me(), hr = new Date().getHours();
     var hello = hr >= 4 && hr < 10 ? DATA.LINES.morning : hr < 17 ? DATA.LINES.day : DATA.LINES.night;
-    var text;
-    if (!save.intro) { text = DATA.LINES.first; save.intro = true; store(); }
-    else text = (nameOf(u) ? nameOf(u) + '、' : '') + hello + '\n' + (C.checkedToday(save) ? pick(DATA.LINES.title) : DATA.LINES.checkFirst);
+    var text, parts;
+    if (!save.intro) { text = DATA.LINES.first; parts = [text]; save.intro = true; store(); }
+    else {
+      var nm = nameOf(u), line = C.checkedToday(save) ? pick(DATA.LINES.title) : DATA.LINES.checkFirst;
+      text = (nm ? nm + '、' : '') + hello + '\n' + line;
+      parts = [nm ? nm + '、' : '', hello, line];   // the name is read by the phone, the rest are clips
+    }
     setTimeout(function () {
       if (screen !== 'title') return;
       var p = hakasePos();
       bubble(text, { x: p.x, y: 276, w: 318 });
-      speak(text);
+      speak(parts);
     }, 350);
   }
 
@@ -730,10 +736,10 @@
       el.classList.toggle('long', name.length > 4);
       S.play('fanfare');
       var who = nameOf(me());
-      var line = (who ? who + '、' : '') + (R.out.newBest ? pick(DATA.LINES.best) : R.out.firstPlay ? pick(DATA.LINES.first1) : R.rank >= 4 ? pick(DATA.LINES.good) : pick(DATA.LINES.soso));
+      var core = R.out.newBest ? pick(DATA.LINES.best) : R.out.firstPlay ? pick(DATA.LINES.first1) : R.rank >= 4 ? pick(DATA.LINES.good) : pick(DATA.LINES.soso);
       $('r-badge').textContent = R.out.newBest ? 'じこベスト！' : '';
-      $('r-say').textContent = 'ケロはかせ「' + line + '」';
-      speak(name + '！ ' + line);
+      $('r-say').textContent = 'ケロはかせ「' + (who ? who + '、' : '') + core + '」';
+      speak([name + '！', who ? who + '、' : '', core]);
       confetti(R.rank >= 5 ? 60 : 24);
       var got = document.querySelectorAll('#r-stars i');
       for (var i = 0; i < R.out.stars; i++) {
@@ -790,16 +796,16 @@
       title = ov.n % 5 === 0 ? 'はなまる スタンプ！' : 'スタンプ ゲット！';
       text = 'スタンプ ' + ov.n + 'こめ！';
       setTimeout(function () { S.play('stamp'); vibrate(40); }, 380);
-      speak(title + ' ' + text);
+      speak(title);   // (the number is on the card)
     } else if (ov.kind === 'training') {
       title = 'あたらしい トレーニング！';
       text = '「' + trOf(ov.id).name + '」で あそべるよ';
-      S.play('unlock'); speak(DATA.LINES.newTraining + ' ' + trOf(ov.id).name);
+      S.play('unlock'); speak([DATA.LINES.newTraining, trOf(ov.id).name]);
     } else if (ov.kind === 'song') {
       var g = songOf(ov.id);
       title = 'あたらしい きょく！';
       text = 'ピアノで「' + g.name + '」が ひけるよ';
-      S.play('unlock'); speak(DATA.LINES.newSong + ' ' + g.name);
+      S.play('unlock'); speak([DATA.LINES.newSong, g.name]);
     } else if (ov.kind === 'practice') {
       title = 'じょうず！';
       text = 'つぎは ほんばん だよ！';
@@ -971,13 +977,14 @@
       check.ranks.forEach(function (r, i) { if (r > check.ranks[best]) best = i; });
       var allSame = check.ranks.every(function (r) { return r === check.ranks[0]; });
       var who = nameOf(me());
-      var line = (who ? who + '、' : '') + (allSame ? (check.ranks[0] >= 5 ? 'ぜんぶ すごいね！' : 'まいにち やると ぐんぐん のびるよ') : DATA.CHECK[best].good);
+      var core = allSame ? (check.ranks[0] >= 5 ? 'ぜんぶ すごいね！' : 'まいにち やると ぐんぐん のびるよ') : DATA.CHECK[best].good;
+      var line = (who ? who + '、' : '') + core;
       if (!check.out.recorded) line += '\n（れんしゅう なので きろくは しないよ）';
       $('ck-say').textContent = 'ケロはかせ「' + line + '」';
       S.play('fanfare');
       confetti(40);
       var what = check.out.age != null ? 'のうねんれいは ' + check.out.age + 'さい！' : 'きょうの あたまは ' + animalName(check.out.rank) + '！';
-      speak(what + ' ' + line.split('\n')[0]);
+      speak([what, who ? who + '、' : '', core]);
     }
     if (check.shown && !check.overlays && check.t >= 2.9) { check.overlays = true; queueGains(check.out, false); }
   }
@@ -1259,9 +1266,12 @@
     $('p-all').classList.toggle('active', !!save.all);
     $('p-stop').textContent = 'おしまいの声かけ：' + (save.stopAfter ? save.stopAfter + 'つで' : 'しない');
     $('p-reset').textContent = 'このユーザーの記録をリセット';
-    $('p-voice').textContent = V.quiet ? '読み上げ：パソコンでの確認中は 音も声も出しません（アドレスに ?sound=1 を付けると出ます）。' : V.available() ? '読み上げ：日本語の声が見つかりました。' :
-      V.supported() ? '読み上げ：日本語の声が見つかりません。Android の「設定 → システム → 言語と入力 → テキスト読み上げ」で日本語の音声データを入れると、ケロはかせが しゃべります。' :
-      '読み上げ：このブラウザでは使えません。';
+    var nv = V.nameVoice();
+    $('p-voice').textContent = (V.credit ? 'ケロはかせの こえ：' + V.credit + '。' : '') +
+      (V.quiet ? 'パソコンでの確認中は 音も声も出しません（アドレスに ?sound=1 を付けると出ます）。' :
+        nv === 'ok' ? 'なまえの読み上げ：日本語の声が見つかりました。' :
+        nv === 'none' ? 'なまえの読み上げ：日本語の声が見つかりません。Android の「設定 → システム → 言語と入力 → テキスト読み上げ」で日本語の音声データを入れると、なまえも よびます。' :
+        'なまえの読み上げ：このブラウザでは使えません。');
     showPanel('parent');
   }
 

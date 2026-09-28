@@ -99,6 +99,9 @@ input { -webkit-user-select: text; user-select: text; touch-action: auto; }
 .badge svg { width: 14px !important; height: 14px !important; color: var(--gold); }
 .badge svg path, .wallet svg path, .chara-btn svg path, .buy-text svg path, .mini-stars .got svg path, .clear-stars .got svg path { stroke: var(--ink); stroke-width: 1.6; }
 
+.credit { position: absolute; left: 0; right: 0; bottom: 3px; text-align: center; font-size: 9px; line-height: 1; font-weight: 800; opacity: .6; pointer-events: none; }
+.credit:empty { display: none; }
+
 /* ---------- who plays ---------- */
 .who-title {
   position: absolute; left: 0; right: 0; top: 96px; margin: 0; text-align: center; font-size: 32px; color: #fff;

@@ -4,20 +4,33 @@
    in the background and used from the next launch.
    The site hosts other games and the menu, which share the cache storage,
    so only caches whose names start with "gun-" are ever deleted here. */
-var VERSION = 'gun-v2';
+var VERSION = 'gun-v3';
 var FONTS = 'gun-fonts';
 var FILES = [
   './', 'index.html', 'style.css', 'manifest.webmanifest',
-  'js/draw.js', 'js/data.js', 'js/core.js', 'js/art.js', 'js/pics.js', 'js/sound.js', 'js/voice.js', 'js/trainings.js',
+  'js/draw.js', 'js/data.js', 'js/core.js', 'js/art.js', 'js/pics.js', 'js/sound.js', 'js/voice-clips.js', 'js/voice.js', 'js/trainings.js',
   'js/tr/keisan.js', 'js/tr/ookii.js', 'js/tr/junban.js', 'js/tr/patto.js', 'js/tr/nannin.js', 'js/tr/sakki.js',
   'js/tr/janken.js', 'js/tr/jump.js', 'js/tr/tori.js', 'js/tr/kotoba.js', 'js/tr/piano.js', 'js/tr/sudoku.js',
   'js/tr/nanika.js', 'js/tr/hako.js', 'js/versus.js', 'js/app.js',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'
 ];
 
+// ケロはかせ's recorded voice: the list of clip files comes from js/voice-clips.js.
+var VOICE_FILES = [];
+try {
+  importScripts('js/voice-clips.js');
+  VOICE_FILES = Object.keys(VOICE_CLIPS.files).map(function (k) { return VOICE_CLIPS.files[k]; })
+    .filter(function (f, i, all) { return all.indexOf(f) === i; });
+} catch (e) { /* no voice yet */ }
+
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(VERSION)
-    .then(function (c) { return c.addAll(FILES); })
+    .then(function (c) {
+      return c.addAll(FILES).then(function () {
+        // one by one, so a missing clip never stops the game from being stored
+        return Promise.all(VOICE_FILES.map(function (f) { return c.add(f).catch(function () {}); }));
+      });
+    })
     .then(function () { return self.skipWaiting(); }));
 });
 

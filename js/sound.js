@@ -232,7 +232,33 @@ var Sound = (function () {
     if (!ac) return;
     var now = ac.currentTime;
     if (kind === 'sfx') sfxBus.gain.setTargetAtTime(value ? 0.8 : 0, now, 0.02);
-    if (kind === 'music') musicBus.gain.setTargetAtTime(value ? MUSIC_VOL : 0, now, 0.05);
+    if (kind === 'music') musicBus.gain.setTargetAtTime(musicLevel(), now, 0.05);
+  }
+
+  // ケロはかせ's recorded voice (js/voice.js): a decoded clip plays at the master volume,
+  // and the music steps back while he talks.
+  var talking = 0;
+  function musicLevel() { return on.music ? (talking ? MUSIC_VOL * 0.35 : MUSIC_VOL) : 0; }
+  function decode(bytes) {
+    return new Promise(function (ok, ng) {
+      if (!ac) { ng(new Error('no audio')); return; }
+      try { var p = ac.decodeAudioData(bytes, ok, ng); if (p && p.catch) p.catch(ng); } catch (e) { ng(e); }
+    });
+  }
+  function voice(buf, done) {
+    if (!ac || ac.state !== 'running') return null;
+    var s = ac.createBufferSource();
+    s.buffer = buf;
+    s.connect(master);
+    talking++;
+    musicBus.gain.setTargetAtTime(musicLevel(), ac.currentTime, 0.08);
+    s.onended = function () {
+      talking = Math.max(0, talking - 1);
+      musicBus.gain.setTargetAtTime(musicLevel(), ac.currentTime, 0.25);
+      if (done) done();
+    };
+    s.start();
+    return s;
   }
 
   function suspend() { if (ac && ac.state === 'running') ac.suspend(); }
@@ -241,5 +267,5 @@ var Sound = (function () {
   // The piano of the piano training is the training itself, not an effect: it sounds even with effects off.
   function piano(i, len) { if (ac) { try { pianoNote(i, len, 0, master); } catch (e) { /* ignore */ } } }
 
-  return { init: init, ready: ready, play: play, piano: piano, set: set, startMusic: startMusic, stopMusic: stopMusic, suspend: suspend, resume: resume };
+  return { init: init, ready: ready, play: play, piano: piano, set: set, startMusic: startMusic, stopMusic: stopMusic, suspend: suspend, resume: resume, decode: decode, voice: voice };
 }());
