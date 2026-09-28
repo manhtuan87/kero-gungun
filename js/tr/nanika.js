@@ -32,7 +32,7 @@
     function finish() {
       phase = 'end';
       var score = Math.max(0, hits - wrong);
-      api.finish({ score: score, text: 'あたり ' + hits + '・まちがい ' + wrong + '（' + g.targets.length + 'まい）', delay: 900 });
+      api.finish({ score: score, text: U.res.pick(hits, wrong, g.targets.length), delay: 900 });
     }
 
     return {
@@ -40,7 +40,7 @@
       begin: function () {
         phase = 'look'; pt = 0;
         api.speak('えを よく おぼえてね');
-        doneBtn = api.bigButton('おぼえた！', function () { if (phase === 'look') recall(); }, { x: 90, y: 540, w: 180, h: 64, size: 24 });
+        doneBtn = api.bigButton(L('おぼえた！'), function () { if (phase === 'look') recall(); }, { x: 90, y: 540, w: 180, h: 64, size: 24 });
       },
       update: function (dt, playing) {
         clock += dt; pt += dt;
@@ -54,7 +54,7 @@
       },
       draw: function (c) {
         if (phase === 'wait' || phase === 'look') {
-          A.text(c, 'この えを おぼえてね！', 180, 86, 23, '#fff', { lw: 6 });
+          A.text(c, L('この えを おぼえてね！'), 180, 86, 23, '#fff', { lw: 6 });
           var left = phase === 'look' ? Math.max(0, 1 - pt / p.time) : 1;
           D.roundRect(c, 60, 104, 240, 14, 7); D.paint(c, 'rgba(255,255,255,.75)', D.INK, 2.5);
           if (left > 0.01) { D.roundRect(c, 62, 106, 236 * left, 10, 5); D.paint(c, '#ffb347'); }
@@ -65,7 +65,7 @@
           });
           return;
         }
-        A.text(c, 'みた えを えらんでね（' + chosen.length + ' / ' + g.targets.length + '）', 180, 86, 20, '#fff', { lw: 6 });
+        A.text(c, L('みた えを えらんでね（{a} / {b}）', { a: chosen.length, b: g.targets.length }), 180, 86, 20, '#fff', { lw: 6 });
         g.grid.forEach(function (id, i) {
           var q = gridCells[i], on = chosen.indexOf(i) >= 0, hit = g.targets.indexOf(id) >= 0;
           A.card(c, q.x, q.y, q.s, q.s, on ? '#ffd23d' : '#e8e0d6');

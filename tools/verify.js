@@ -189,6 +189,42 @@ run('kotoba', (tr, p, lv, r) => {
 check(Data.PICS.every(x => /^[ぁ-ん]+$/.test(x.name)), 'picture names must be hiragana');
 check(new Set(Data.PICS.map(x => x.id)).size === Data.PICS.length, 'picture ids repeat');
 
+// ことば つくり and じゅんばん in the other languages (the words and letters of js/lang-text.js, put into
+// the data the way app.js does it)
+{
+  const fs = require('fs'), path = require('path');
+  global.window = { addEventListener() {} };
+  global.localStorage = { getItem: () => 'ja' };
+  const src = ['lang.js', 'lang-text.js'].map(f => fs.readFileSync(path.join(__dirname, '../js', f), 'utf8')).join('\n');
+  const LANGS = new Function(src + '\nreturn GUNGUN_LANG;')();
+  const keep = { names: Data.PICS.map(x => x.name), kana: Data.KANA, len: {} };
+  const kl = T.byId.kotoba.levels;
+  Object.keys(kl).forEach(lv => { keep.len[lv] = kl[lv].len; });
+  Object.keys(LANGS).forEach(lang => {
+    const K = LANGS[lang];
+    check(K.keys.length === 8 && K.week.length === 7 && K.seq.length >= 10, `${lang}: keys, week and seq`);
+    Object.keys(K.words).forEach(id => check(Data.PICS.some(x => x.id === id), `${lang}: no picture ${id}`));
+    Data.PICS.forEach(x => { x.name = (K.words[x.id] || '').normalize('NFC'); });
+    Data.KANA = K.letters.normalize('NFC');
+    Object.keys(K.len).forEach(lv => { kl[lv].len = K.len[lv]; });
+    check(Object.values(K.words).every(w => w === w.normalize('NFC') && !/\s/.test(w)), `${lang}: words must be NFC without spaces`);
+    run('kotoba', (tr, p, lv, r) => {
+      const qs = tr.gen(p, r);
+      check(qs.length === p.q, `${lang} kotoba ${lv} count (${qs.length})`);
+      qs.forEach(q => {
+        check(q.word.length >= p.len[0] && q.word.length <= p.len[1] && q.word.length <= 7, `${lang} kotoba ${lv} word length`);
+        check(q.tiles.length === q.word.length + p.dummy && q.tiles.length <= 10, `${lang} kotoba ${lv} tiles`);
+        const rest = q.tiles.slice();
+        q.word.split('').forEach(ch => { const k = rest.indexOf(ch); check(k >= 0, `${lang} kotoba ${lv} letter missing`); if (k >= 0) rest.splice(k, 1); });
+        rest.forEach(ch => check(!q.word.includes(ch), `${lang} kotoba ${lv} dummy letter in the word`));
+      });
+    });
+  });
+  Data.PICS.forEach((x, i) => { x.name = keep.names[i]; });
+  Data.KANA = keep.kana;
+  Object.keys(keep.len).forEach(lv => { kl[lv].len = keep.len[lv]; });
+}
+
 console.log('piano');
 Data.SONGS.concat([Data.SCALE]).forEach(g => {
   const notes = T.byId.piano.parse(g.notes);

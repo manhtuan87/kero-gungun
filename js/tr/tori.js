@@ -59,7 +59,7 @@
       qi++;
       if (qi >= qs.length) {
         phase = 'end';
-        api.finish({ score: correct, text: correct + 'もん せいかい（' + qs.length + 'もん）' });
+        api.finish({ score: correct, text: U.res.right(correct, qs.length) });
         return;
       }
       Q = qs[qi];
@@ -94,7 +94,7 @@
       },
       draw: function (c) {
         drawForest(c, D, 20, 118, 340, 438);
-        if (!Q) { A.text(c, 'ことりは なんわ？', 180, 90, 24, '#fff', { lw: 7 }); return; }
+        if (!Q) { A.text(c, L('ことりは なんわ？'), 180, 90, 24, '#fff', { lw: 7 }); return; }
         var t = clock, n = 0;
         Q.things.forEach(function (th) {
           // while counting, everybody stays where they were
@@ -115,7 +115,7 @@
           for (var i = 0; i < 16; i++) { D.circle(c, 30 + (i % 4) * 100 + (Math.floor(i / 4) % 2) * 50, 130 + Math.floor(i / 4) * 90, 58); c.fill(); }
           c.restore();
         }
-        var head = phase === 'count' ? 'こたえは ' + Q.answer + 'わ' : 'ことりは なんわ？';
+        var head = phase === 'count' ? L('こたえは {n}わ', { n: Q.answer }) : L('ことりは なんわ？');
         A.text(c, head, 180, 90, phase === 'count' ? 28 : 24, phase === 'count' ? (verdict ? '#ff8fc0' : '#6cc6ff') : '#fff', { lw: 7 });
       },
       peek: function () { return phase === 'look' || phase === 'hidden' ? Q.answer : null; },   // for playtesting

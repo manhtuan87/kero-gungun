@@ -4,14 +4,16 @@
 (function (T) {
   'use strict';
   var U = T.U, G = typeof window !== 'undefined' ? window : {};
-  var KANA = 'あいうえおかきくけこ';
+  var DATA = typeof Data !== 'undefined' ? Data : require('../data.js');
+  var KANA = 'あいうえおかきくけこ';   // (in another language, its first letters: DATA.SEQ, set by app.js)
   var POND_Y = 116;                                   // the pond starts below the row that shows the whole order
   var BOX = { x0: 46, y0: 150, x1: 314, y1: 552 };
   var START = { x: 180, y: 606 };
 
   function labels(p) {
     var out = [];
-    for (var i = 0; i < p.n; i++) out.push(p.seq === 'alt' ? (i % 2 ? KANA.charAt((i - 1) / 2) : String(i / 2 + 1)) : String(i + 1));
+    var letters = DATA.SEQ || KANA;
+    for (var i = 0; i < p.n; i++) out.push(p.seq === 'alt' ? (i % 2 ? letters.charAt((i - 1) / 2) : String(i / 2 + 1)) : String(i + 1));
     return out;
   }
   // p: { boards, seq: 'num' | 'alt', n }
@@ -34,7 +36,7 @@
       api.hand(null);
       if (bi >= boards.length) {
         phase = 'end';
-        api.finish({ score: time + mistakes * 2, text: U.fmtTime(time) + (mistakes ? '・まちがい ' + mistakes : '') });
+        api.finish({ score: time + mistakes * 2, text: U.res.time(time, mistakes) });
         return;
       }
       pads = boards[bi].map(function (q, i) { return { label: q.label, x: q.x, y: q.y, i: i, done: false, shake: 0 }; });

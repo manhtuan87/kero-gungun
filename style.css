@@ -2,7 +2,7 @@
   --ink: #5a3825;
   --cream: #fffaf2;
   --gold: #ffc21a;
-  --font: 'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', 'BIZ UDPGothic', 'Noto Sans JP', sans-serif;
+  --font: 'M PLUS Rounded 1c', 'Jua', 'Hiragino Maru Gothic ProN', 'BIZ UDPGothic', 'Noto Sans JP', sans-serif;
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
@@ -67,18 +67,8 @@ input { -webkit-user-select: text; user-select: text; touch-action: auto; }
 }
 .logo .l2 b { font-size: 42px; }
 .logo .l2 i { display: inline-block; width: 8px; }
-.logo .l1 b:nth-child(1) { color: #86d65c; }
-.logo .l1 b:nth-child(2) { color: #ff8fc0; }
-.logo .l1 b:nth-child(3) { color: #ffb347; }
-.logo .l1 b:nth-child(4) { color: #6cc6ff; }
-.logo .l1 b:nth-child(5) { color: #b58cff; }
-.logo .l2 b:nth-child(1) { color: #ffd23d; }
-.logo .l2 b:nth-child(2) { color: #ff8fc0; }
-.logo .l2 b:nth-child(3) { color: #6cc6ff; }
-.logo .l2 b:nth-child(5) { color: #86d65c; }
-.logo .l2 b:nth-child(6) { color: #ffa552; }
-.logo .l2 b:nth-child(7) { color: #b58cff; }
-.logo .l2 b:nth-child(8) { color: #ff8fc0; }
+.logo b.gap { width: 8px; }
+.logo.latin .l2 b { font-size: 38px; }
 .title-menu { position: absolute; left: 18px; right: 18px; top: 420px; display: flex; flex-direction: column; gap: 10px; }
 .menu-big { width: 100%; height: 62px; font-size: 25px; gap: 10px; }
 .menu-big svg { width: 32px; height: 32px; }

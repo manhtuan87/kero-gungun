@@ -62,7 +62,7 @@
       qi++;
       if (qi >= qs.length) {
         phase = 'end';
-        api.finish({ score: correct, text: correct + 'もん せいかい（' + qs.length + 'もん）' });
+        api.finish({ score: correct, text: U.res.right(correct, qs.length) });
         return;
       }
       Q = qs[qi];
@@ -132,9 +132,9 @@
           var q = where(w);
           drawWho(c, D, w.e.who, q.x, q.y, q.scale, clock, true);
         });
-        if (phase === 'ask') A.text(c, 'おうちの なかに なんにん？', 180, 116, 24, '#fff', { lw: 7 });
-        else if (phase === 'reveal') A.text(c, 'こたえは ' + Q.answer + 'にん', 180, 116, 28, verdict ? '#ff8fc0' : '#6cc6ff', { lw: 7 });
-        else if (phase === 'watch') A.text(c, 'よく みててね！', 180, 116, 24, '#fff', { lw: 7 });
+        if (phase === 'ask') A.text(c, L('おうちの なかに なんにん？'), 180, 116, 24, '#fff', { lw: 7 });
+        else if (phase === 'reveal') A.text(c, L('こたえは {n}にん', { n: Q.answer }), 180, 116, 28, verdict ? '#ff8fc0' : '#6cc6ff', { lw: 7 });
+        else if (phase === 'watch') A.text(c, L('よく みててね！'), 180, 116, 24, '#fff', { lw: 7 });
       },
       peek: function () { return phase === 'ask' ? Q.answer : null; },   // for playtesting
       end: function () {}

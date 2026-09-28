@@ -55,7 +55,7 @@
       api.hand(null);
       if (j >= g.qs.length) {
         phase = 'end';
-        api.finish({ score: correct, text: correct + 'もん せいかい（' + g.qs.length + 'もん）' });
+        api.finish({ score: correct, text: U.res.right(correct, g.qs.length) });
         return;
       }
       if (p.mode === 'now') { showCard(j); phase = 'look'; pt = 0; ch.enable(false); }
@@ -99,9 +99,9 @@
         } else if (phase === 'after' && pt > 0.7) next();
       },
       draw: function (c, clock) {
-        var q = g.qs[Math.max(0, j)], ask = p.mode === 'now' ? 'いまの え は どれ？' : g.back === 2 ? 'ふたつ まえの え は どれ？' : 'ひとつ まえの え は どれ？';
-        if (phase === 'intro') A.text(c, 'この えを おぼえてね', 180, 80, 23, '#fff', { lw: 6 });
-        else if (phase === 'look') A.text(c, 'よく みてね', 180, 80, 23, '#fff', { lw: 6 });
+        var q = g.qs[Math.max(0, j)], ask = L(p.mode === 'now' ? 'いまの え は どれ？' : g.back === 2 ? 'ふたつ まえの え は どれ？' : 'ひとつ まえの え は どれ？');
+        if (phase === 'intro') A.text(c, L('この えを おぼえてね'), 180, 80, 23, '#fff', { lw: 6 });
+        else if (phase === 'look') A.text(c, L('よく みてね'), 180, 80, 23, '#fff', { lw: 6 });
         else if (phase !== 'wait') A.text(c, ask, 180, 80, 22, '#fff', { lw: 6 });
         if (shownI < 0) return;
         var id = g.seq[shownI], s = Math.abs(Math.cos(flip * Math.PI)), dx = (1 - slide) * 240;

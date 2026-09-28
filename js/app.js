@@ -9,6 +9,39 @@
   var LS = (function () { try { return window.localStorage; } catch (e) { return null; } }());
   var NOSTORE = { getItem: function () { return null; }, setItem: function () {} };
 
+  // ---------------------------------------------------------------- language (js/lang.js, js/lang-text.js)
+  // The names and lines in the data are put into the chosen language once, here at the start (the Node
+  // tools keep the Japanese data). The voice speaks Japanese only, so the other languages are text only.
+  (function localize() {
+    if (Lang.cur === 'ja') return;
+    var tx = function (s) { return L(s); };
+    T.list.forEach(function (tr) { tr.name = L(tr.name); if (tr.help) tr.help = L(tr.help); });
+    DATA.CATS.forEach(function (c) { c.name = L(c.name); });
+    DATA.LEVELS.forEach(function (l) { l.name = L(l.name); });
+    DATA.ANIMALS.forEach(function (a) { a.name = L(a.name); a.fact = L(a.fact); });
+    DATA.CHECK.forEach(function (c) { c.name = L(c.name); c.good = L(c.good); });
+    DATA.SONGS.concat([DATA.SCALE]).forEach(function (g) { g.name = L(g.name); });
+    Object.keys(DATA.LINES).forEach(function (k) { var v = DATA.LINES[k]; DATA.LINES[k] = Array.isArray(v) ? v.map(tx) : L(v); });
+    // what depends on the letters of the language: ことば つくり, じゅんばん, the piano's note names
+    var K = GUNGUN_LANG[Lang.cur], kt = T.byId.kotoba, kl = kt.levels;
+    // (the average word length at each level, to give ことば つくり fair rank limits: longer words take longer)
+    var avgLen = function (lv) {
+      var ws = DATA.PICS.filter(function (p) { return p.name.length >= kl[lv].len[0] && p.name.length <= kl[lv].len[1]; });
+      return ws.reduce(function (s, p) { return s + p.name.length; }, 0) / Math.max(1, ws.length);
+    };
+    var jaLen = {};
+    Object.keys(kt.ranks).forEach(function (lv) { jaLen[lv] = avgLen(lv); });
+    K.keys.forEach(function (n, i) { DATA.KEYS[i] = n; });
+    DATA.PICS.forEach(function (p) { p.name = (K.words[p.id] || '').normalize('NFC'); });   // (no word: not in ことば つくり)
+    DATA.KANA = K.letters.normalize('NFC');
+    DATA.SEQ = K.seq.normalize('NFC');
+    Object.keys(K.len).forEach(function (lv) { kl[lv].len = K.len[lv]; });
+    Object.keys(kt.ranks).forEach(function (lv) {
+      var f = Math.max(1, avgLen(lv) / jaLen[lv]);
+      kt.ranks[lv] = kt.ranks[lv].map(function (s) { return Math.round(s * f * 10) / 10; });
+    });
+  }());
+
   // ---------------------------------------------------------------- save data
 
   var save = C.load(LS || NOSTORE);
@@ -26,10 +59,30 @@
   }
   function levelName(lv) {
     for (var i = 0; i < DATA.LEVELS.length; i++) if (DATA.LEVELS[i].id === lv) return DATA.LEVELS[i].name;
-    return 'チェック';
+    return L('チェック');
   }
   function levelsFor() { return DATA.LEVELS.filter(function (l) { return !l.adult || isAdult(); }); }
   function animalName(rank) { return DATA.ANIMALS[Math.max(0, Math.min(6, rank - 1))].name; }
+  var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];   // (English calendar)
+  function paren(t) { return t ? L('（{t}）', { t: t }) : ''; }
+  function nameHead(n) { return n ? L('{name}、', { name: n }) : ''; }
+  // A run's result in words. Trainings give a small object (U.res in trainings.js), kept as JSON in the
+  // records so it reads right in any language; old saves kept the Japanese text itself.
+  function resText(x) {
+    if (!x) return '';
+    if (typeof x === 'string') {
+      if (x.charAt(0) !== '{') return Lang.cur === 'ja' || !Lang.hasJapanese(x) ? x : '';
+      try { x = JSON.parse(x); } catch (e) { return ''; }
+    }
+    var time = function (t) { return L('{s}びょう', { s: (+t || 0).toFixed(1) }); };
+    if (x.k === 'time') return time(x.t) + (x.m ? L('・まちがい {n}', { n: x.m }) : '');
+    if (x.k === 'right') return L('{a}もん せいかい（{b}もん）', { a: x.a, b: x.b });
+    if (x.k === 'jump') return L('とんだ {o}・タッチ {t}・ミス {m}', { o: x.o, t: x.t, m: x.m });
+    if (x.k === 'pick') return L('あたり {h}・まちがい {w}（{n}まい）', { h: x.h, w: x.w, n: x.n });
+    if (x.k === 'piano') return L('まちがい {m}かい・{time}', { m: x.m, time: time(x.t) });
+    return '';
+  }
+  function resKeep(x) { return x && typeof x === 'object' ? JSON.stringify(x) : (x || ''); }
   function songOf(id) { for (var i = 0; i < DATA.SONGS.length; i++) if (DATA.SONGS[i].id === id) return DATA.SONGS[i]; return null; }
   function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (ch) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]; }); }
@@ -143,7 +196,7 @@
     if (o.dur !== 0) tipTimer = setTimeout(hideBubble, o.dur || 6500);
   }
   function hideBubble() { clearTimeout(tipTimer); $('tip').classList.remove('on'); }
-  function speak(text, opts) { if (save.voice) V.say(text, opts); }
+  function speak(text) { if (save.voice && Lang.cur === 'ja') V.say(text); }
 
   // ---------------------------------------------------------------- small pictures for the lists
 
@@ -236,7 +289,12 @@
   // ---------------------------------------------------------------- title
 
   var title = { syms: [], crit: { mode: 'idle', mt: 0, blink: false, blinkT: 2 } };
-  var SYMS = ['1', '2', '3', 'あ', 'い', 'う', '＋', '？', '5', 'か', '8', 'ね'];
+  var SYMS = Lang.pick({
+    ja: ['1', '2', '3', 'あ', 'い', 'う', '＋', '？', '5', 'か', '8', 'ね'],
+    vi: ['1', '2', '3', 'a', 'b', 'c', '+', '?', '5', 'đ', '8', 'ơ'],
+    en: ['1', '2', '3', 'A', 'B', 'C', '+', '?', '5', 'D', '8', 'E'],
+    ko: ['1', '2', '3', '가', '나', '다', '+', '?', '5', '라', '8', '마']
+  });
   var SYM_COLORS = ['#ff8fc0', '#6cc6ff', '#ffb347', '#86d65c', '#b58cff', '#ffd23d'];
   for (var si = 0; si < 11; si++) {
     title.syms.push({ ch: SYMS[si], x: 16 + Math.random() * 328, y: 60 + Math.random() * 600, vy: 9 + Math.random() * 10, size: 20 + Math.random() * 14, col: SYM_COLORS[si % 6], seed: Math.random() * 6 });
@@ -250,9 +308,9 @@
     var chip = $('btn-user'), u = me();
     chip.hidden = save.users.length < 2 && !nameOf(u);
     chip.classList.toggle('single', save.users.length < 2);
-    chip.innerHTML = '<i style="background:' + C.COLORS[u.color] + '"></i>' + esc(nameOf(u) || 'なまえなし');
+    chip.innerHTML = '<i style="background:' + C.COLORS[u.color] + '"></i>' + esc(nameOf(u) || L('なまえなし'));
     $('shop-badge').innerHTML = icon('star') + C.wallet(ud());
-    $('credit').textContent = V.credit ? 'こえ：' + V.credit : '';
+    $('credit').textContent = V.credit ? L('こえ：{credit}', { credit: V.credit }) : '';
     refreshToggles();
   }
 
@@ -264,7 +322,7 @@
     if (!save.intro) { text = DATA.LINES.first; parts = [text]; save.intro = true; store(); }
     else {
       var nm = nameOf(u), line = C.checkedToday(save) ? pick(DATA.LINES.title) : DATA.LINES.checkFirst;
-      text = (nm ? nm + '、' : '') + hello + '\n' + line;
+      text = nameHead(nm) + hello + '\n' + line;
       parts = [nm ? nm + '、' : '', hello, line];   // the name is read by the phone, the rest are clips
     }
     setTimeout(function () {
@@ -322,7 +380,7 @@
       var b = document.createElement('button');
       b.className = 'btn who-btn';
       b.innerHTML = '<span class="udot" style="background:' + C.COLORS[u.color] + '">' + esc(initial(u)) + '</span>' +
-        '<span>' + esc(nameOf(u) || 'なまえなし') + '</span><small>' + (u.type === 'adult' ? 'おとな' : 'こども') + '</small>';
+        '<span>' + esc(nameOf(u) || L('なまえなし')) + '</span><small>' + L(u.type === 'adult' ? 'おとな' : 'こども') + '</small>';
       b.addEventListener('click', function () {
         S.play('click'); save.cur = u.id; store();
         if (history.state && history.state.gungun) backTo('title'); else go('title');
@@ -368,8 +426,8 @@
         if (best) { row.appendChild(animalCanvas(best.rank, 34, 24)); row.insertAdjacentHTML('beforeend', stars(best.stars)); }
         b.appendChild(row);
         if (!open) {
-          b.insertAdjacentHTML('beforeend', '<div class="tr-lock">' + icon('lock') + '<span>スタンプ あと ' + (info.unlock - have) + 'こ</span></div>');
-        } else if (!ud().seen[info.id]) b.insertAdjacentHTML('beforeend', '<span class="tr-new">あたらしい</span>');
+          b.insertAdjacentHTML('beforeend', '<div class="tr-lock">' + icon('lock') + '<span>' + L('スタンプ あと {n}こ', { n: info.unlock - have }) + '</span></div>');
+        } else if (!ud().seen[info.id]) b.insertAdjacentHTML('beforeend', '<span class="tr-new">' + L('あたらしい') + '</span>');
         b.addEventListener('click', function () {
           if (!C.isOpen(save, info.id)) { S.play('ng'); shake(b); speak('スタンプを あつめると あそべるよ'); return; }
           S.play('click'); forward(function () { openIntro(tr); });
@@ -396,7 +454,7 @@
     buildLevels();
     buildSongs();
     var first = !ud().seen[tr.id];
-    $('intro-start-label').textContent = first ? 'れんしゅう' : 'はじめる';
+    $('intro-start-label').textContent = L(first ? 'れんしゅう' : 'はじめる');
     show('intro');
     setTimeout(function () { if (screen === 'intro' && intro.tr === tr) speak(tr.help); }, 300);
   }
@@ -417,7 +475,7 @@
     // under the levels: the best so far at the chosen level (or the practice note the first time)
     var cur = rec[intro.level];
     $('intro-note').textContent = !ud().seen[intro.tr.id] ? DATA.LINES.practice :
-      cur ? 'いちばん：' + animalName(cur.rank) + (cur.bt ? '（' + cur.bt + '）' : '') : '';
+      cur ? L('いちばん：{best}', { best: animalName(cur.rank) + paren(resText(cur.bt)) }) : '';
   }
 
   function buildSongs() {
@@ -428,7 +486,7 @@
     DATA.SONGS.forEach(function (g) {
       var open = C.songOpen(save, g), b = document.createElement('button');
       b.className = 'song-btn' + (open ? '' : ' locked') + (intro.song === g.id ? ' on' : '');
-      b.innerHTML = open ? esc(g.name) : icon('lock') + ' あと' + (g.unlock - have) + 'こ';
+      b.innerHTML = open ? esc(g.name) : icon('lock') + L(' あと{n}こ', { n: g.unlock - have });
       b.addEventListener('click', function () {
         if (!C.songOpen(save, g)) { S.play('ng'); shake(b); return; }
         S.play('select'); intro.song = g.id; ud().song = g.id; store(); buildSongs();
@@ -465,7 +523,7 @@
       state: 'count', countT: 0, t: 0, session: null, hand: null, done: false
     };
     fx.length = 0; marks.length = 0; words.length = 0;
-    $('p-name').innerHTML = '<span class="nm">' + esc(tr.name) + '</span>' + (run.practice ? '<small>れんしゅう</small>' : '');
+    $('p-name').innerHTML = '<span class="nm">' + esc(tr.name) + '</span>' + (run.practice ? '<small>' + L('れんしゅう') + '</small>' : '');
     setDots(0, 0);
     clearCtrl();
     $('ctrl').classList.add('wait');
@@ -535,7 +593,7 @@
     drawFx(c);
     if (r.hand) D.hand(c, r.hand.x, r.hand.y, 1, Math.sin(clock * 8) > 0);
     if (r.countT < 2.95) {
-      var labels = ['3', '2', '1', 'スタート！'], idx = Math.min(3, Math.floor(r.countT / 0.75)), k = (r.countT - idx * 0.75) / 0.75;
+      var labels = ['3', '2', '1', L('スタート！')], idx = Math.min(3, Math.floor(r.countT / 0.75)), k = (r.countT - idx * 0.75) / 0.75;
       if (idx < 3) { c.save(); c.fillStyle = 'rgba(255,255,255,.3)'; c.fillRect(-200, -200, W + 400, H + 400); c.restore(); }
       D.word(c, labels[idx], W / 2, H / 2 - 30, idx === 3 ? 54 : 104, ['#ff8fc0', '#ffb347', '#6cc6ff', '#86d65c'][idx], Math.min(0.74, k));
     }
@@ -590,7 +648,7 @@
     }
     ud().seen[r.tr.id] = true;
     if (r.check) { run = null; checkNext(r, res); return; }
-    var out = C.addRun(save, { id: r.tr.id, level: r.level, kind: r.tr.kind, cuts: r.tr.ranks[r.level], score: res.score, text: res.text });
+    var out = C.addRun(save, { id: r.tr.id, level: r.level, kind: r.tr.kind, cuts: r.tr.ranks[r.level], score: res.score, text: resKeep(res.text) });
     store();
     run = null;
     showResult(r, res, out);
@@ -625,7 +683,7 @@
     function mk(k, cls) {
       var b = document.createElement('button');
       b.className = 'nkey' + (cls ? ' ' + cls : '');
-      b.textContent = k === 'del' ? 'けす' : String(k);
+      b.textContent = k === 'del' ? L('けす') : String(k);
       b.addEventListener('pointerdown', function (e) { e.preventDefault(); press(b); key(k); });
       btns[k] = b;
       return b;
@@ -714,13 +772,13 @@
 
   function showResult(r, res, out) {
     result = { t: 0, rank: out.rank, tr: r.tr, level: r.level, out: out, res: res, shown: false, overlays: false, starT: [] };
-    $('r-name').textContent = r.tr.name + '（' + levelName(r.level) + '）';
+    $('r-name').textContent = r.tr.name + paren(levelName(r.level));
     $('r-title').textContent = '';
     document.querySelectorAll('#r-stars i').forEach(function (i) { i.classList.remove('got'); });
-    $('r-detail').textContent = res.text || '';
+    $('r-detail').textContent = resText(res.text);
     $('r-badge').textContent = '';
     $('r-say').textContent = '';
-    $('r-next-label').textContent = 'リストへ';
+    $('r-next-label').textContent = L('リストへ');
     show('result');
     S.play('drum');
   }
@@ -732,13 +790,13 @@
     if (!R.shown && R.t >= 1.15) {
       R.shown = true;
       var name = animalName(R.rank), el = $('r-title');
-      el.textContent = name + '！';
+      el.textContent = L('{animal}！', { animal: name });
       el.classList.toggle('long', name.length > 4);
       S.play('fanfare');
       var who = nameOf(me());
       var core = R.out.newBest ? pick(DATA.LINES.best) : R.out.firstPlay ? pick(DATA.LINES.first1) : R.rank >= 4 ? pick(DATA.LINES.good) : pick(DATA.LINES.soso);
-      $('r-badge').textContent = R.out.newBest ? 'じこベスト！' : '';
-      $('r-say').textContent = 'ケロはかせ「' + (who ? who + '、' : '') + core + '」';
+      $('r-badge').textContent = R.out.newBest ? L('じこベスト！') : '';
+      $('r-say').textContent = L('ケロはかせ「{t}」', { t: nameHead(who) + core });
       speak([name + '！', who ? who + '、' : '', core]);
       confetti(R.rank >= 5 ? 60 : 24);
       var got = document.querySelectorAll('#r-stars i');
@@ -791,25 +849,25 @@
     if (!ov) return;
     ov.t = 0;
     if (ov.kind === 'nudge') { showPanel('nudge'); S.play('soft'); speak(DATA.LINES.enough); return; }
-    var title = '', text = '', ok = 'やったね！';
+    var title = '', text = '', ok = L('やったね！');
     if (ov.kind === 'stamp') {
-      title = ov.n % 5 === 0 ? 'はなまる スタンプ！' : 'スタンプ ゲット！';
-      text = 'スタンプ ' + ov.n + 'こめ！';
+      title = L(ov.n % 5 === 0 ? 'はなまる スタンプ！' : 'スタンプ ゲット！');
+      text = L('スタンプ {n}こめ！', { n: ov.n });
       setTimeout(function () { S.play('stamp'); vibrate(40); }, 380);
       speak(title);   // (the number is on the card)
     } else if (ov.kind === 'training') {
-      title = 'あたらしい トレーニング！';
-      text = '「' + trOf(ov.id).name + '」で あそべるよ';
+      title = L('あたらしい トレーニング！');
+      text = L('「{name}」で あそべるよ', { name: trOf(ov.id).name });
       S.play('unlock'); speak([DATA.LINES.newTraining, trOf(ov.id).name]);
     } else if (ov.kind === 'song') {
       var g = songOf(ov.id);
-      title = 'あたらしい きょく！';
-      text = 'ピアノで「' + g.name + '」が ひけるよ';
+      title = L('あたらしい きょく！');
+      text = L('ピアノで「{name}」が ひけるよ', { name: g.name });
       S.play('unlock'); speak([DATA.LINES.newSong, g.name]);
     } else if (ov.kind === 'practice') {
-      title = 'じょうず！';
-      text = 'つぎは ほんばん だよ！';
-      ok = 'ほんばん';
+      title = L('じょうず！');
+      text = L('つぎは ほんばん だよ！');
+      ok = L('ほんばん');
       S.play('win'); speak(DATA.LINES.practiceDone);
     }
     $('ov-title').textContent = title;
@@ -907,16 +965,16 @@
     var card = $('check-card');
     card.classList.remove('result');
     if (check.stage === 'intro') {
-      card.innerHTML = '<div class="ck-title">きょうの あたまチェック</div>' +
-        '<p class="ck-text">' + (check.recorded ? '3つの テストで\nきょうの あたまを しらべるよ！' : 'きょうは もう チェック したよ。\nれんしゅうで やってみよう！') + '</p>' +
+      card.innerHTML = '<div class="ck-title">' + L('きょうの あたまチェック') + '</div>' +
+        '<p class="ck-text">' + L(check.recorded ? '3つの テストで\nきょうの あたまを しらべるよ！' : 'きょうは もう チェック したよ。\nれんしゅうで やってみよう！') + '</p>' +
         '<div class="ck-tests">' + testRows() + '</div>' +
-        '<div class="ck-row"><button id="ck-go" class="btn big"><span data-icon="next"></span>はじめる</button></div>';
+        '<div class="ck-row"><button id="ck-go" class="btn big"><span data-icon="next"></span>' + L('はじめる') + '</button></div>';
     } else {
       var next = trOf(check.tests[check.i]);
-      card.innerHTML = '<div class="ck-title">よく できました！</div>' +
-        '<p class="ck-text">つぎは「' + esc(next.name) + '」だよ</p>' +
+      card.innerHTML = '<div class="ck-title">' + L('よく できました！') + '</div>' +
+        '<p class="ck-text">' + L('つぎは「{name}」だよ', { name: esc(next.name) }) + '</p>' +
         '<div class="ck-tests">' + testRows() + '</div>' +
-        '<div class="ck-row"><button id="ck-go" class="btn big"><span data-icon="next"></span>つぎへ</button></div>';
+        '<div class="ck-row"><button id="ck-go" class="btn big"><span data-icon="next"></span>' + L('つぎへ') + '</button></div>';
     }
     fillTestIcons(card);
     setIcons(card);
@@ -956,12 +1014,12 @@
       return '<div class="ck-bar"><span>' + c.name + '</span><div class="cells" style="--c:' + ['#ffb347', '#6cc6ff', '#ff8fc0'][i] + '">' + cells + '</div></div>';
     }).join('');
     var head = out.age != null ?
-      '<div class="ck-big">のうねんれい <b>' + out.age + '</b> さい</div>' :
-      '<div class="ck-big">きょうの あたまは<br><b>' + animalName(out.rank) + '</b></div>';
+      '<div class="ck-big">' + L('のうねんれい <b>{age}</b> さい', { age: out.age }) + '</div>' :
+      '<div class="ck-big">' + L('きょうの あたまは<br><b>{animal}</b>', { animal: animalName(out.rank) }) + '</div>';
     card.innerHTML = '<div id="ck-head" class="r-hide">' + head + '</div>' +
       '<div id="ck-bars" class="ck-bars r-hide">' + bars + '</div>' +
       '<p id="ck-say" class="ck-text r-hide"></p>' +
-      '<div class="ck-row"><button id="ck-end" class="btn">おわる</button><button id="ck-train" class="btn big"><span data-icon="next"></span>トレーニング</button></div>';
+      '<div class="ck-row"><button id="ck-end" class="btn">' + L('おわる') + '</button><button id="ck-train" class="btn big"><span data-icon="next"></span>' + L('トレーニング') + '</button></div>';
     setIcons(card);
     $('ck-end').addEventListener('click', function () { S.play('click'); check = null; backTo('title'); });
     $('ck-train').addEventListener('click', function () { S.play('click'); check = null; navTarget = 'list'; history.back(); });
@@ -978,9 +1036,10 @@
       var allSame = check.ranks.every(function (r) { return r === check.ranks[0]; });
       var who = nameOf(me());
       var core = allSame ? (check.ranks[0] >= 5 ? 'ぜんぶ すごいね！' : 'まいにち やると ぐんぐん のびるよ') : DATA.CHECK[best].good;
-      var line = (who ? who + '、' : '') + core;
-      if (!check.out.recorded) line += '\n（れんしゅう なので きろくは しないよ）';
-      $('ck-say').textContent = 'ケロはかせ「' + line + '」';
+      if (allSame) core = L(core);   // (DATA's lines are already in the chosen language)
+      var line = nameHead(who) + core;
+      if (!check.out.recorded) line += L('\n（れんしゅう なので きろくは しないよ）');
+      $('ck-say').textContent = L('ケロはかせ「{t}」', { t: line });
       S.play('fanfare');
       confetti(40);
       var what = check.out.age != null ? 'のうねんれいは ' + check.out.age + 'さい！' : 'きょうの あたまは ' + animalName(check.out.rank) + '！';
@@ -1009,7 +1068,7 @@
     var now = new Date(), u = ud();
     if (!cal.month) cal.month = new Date(now.getFullYear(), now.getMonth(), 1);
     var y = cal.month.getFullYear(), m = cal.month.getMonth();
-    $('cal-month').textContent = y + 'ねん ' + (m + 1) + 'がつ';
+    $('cal-month').textContent = L('{y}ねん {m}がつ', { y: y, m: m + 1, mon: MONTHS[m] });
     var days = C.stampDays(u), byDay = {};
     days.forEach(function (d) { byDay[d.day] = d; });
     var grid = $('cal-grid'), first = new Date(y, m, 1).getDay(), n = new Date(y, m + 1, 0).getDate(), today = C.dayKey();
@@ -1027,9 +1086,9 @@
     if (nu) {
       var tr = trOf(nu.training || 'piano'), name = nu.training ? tr.name : songOf(nu.song).name;
       box.appendChild(iconCanvas(tr, 58));
-      box.insertAdjacentHTML('beforeend', '<div>あと <b>' + nu.need + 'こ</b> で<br>' + (nu.training ? '「' + esc(name) + '」が ふえるよ！' : 'ピアノの「' + esc(name) + '」が ふえるよ！') + '</div>');
+      box.insertAdjacentHTML('beforeend', '<div>' + L(nu.training ? 'あと <b>{n}こ</b> で<br>「{name}」が ふえるよ！' : 'あと <b>{n}こ</b> で<br>ピアノの「{name}」が ふえるよ！', { n: nu.need, name: esc(name) }) + '</div>');
     } else {
-      box.insertAdjacentHTML('beforeend', '<div>ぜんぶ あいたよ！ まいにち つづけて<br>はなまるを あつめよう！</div>');
+      box.insertAdjacentHTML('beforeend', '<div>' + L('ぜんぶ あいたよ！ まいにち つづけて<br>はなまるを あつめよう！') + '</div>');
     }
   }
 
@@ -1040,7 +1099,7 @@
     body.innerHTML = '';
     var card = document.createElement('div');
     card.className = 'rec-card';
-    card.innerHTML = '<h3>きょうの チェック</h3>';
+    card.innerHTML = '<h3>' + L('きょうの チェック') + '</h3>';
     var cv = makeCanvas(314, 150, 'chart');
     card.appendChild(cv);
     body.appendChild(card);
@@ -1064,7 +1123,7 @@
         chip.insertAdjacentHTML('beforeend', l.name);
         chips.appendChild(chip);
       });
-      if (!chips.children.length) chips.insertAdjacentHTML('beforeend', '<span class="lv-chip" style="padding:2px 8px">まだ だよ</span>');
+      if (!chips.children.length) chips.insertAdjacentHTML('beforeend', '<span class="lv-chip" style="padding:2px 8px">' + L('まだ だよ') + '</span>');
       b.appendChild(tx);
       b.addEventListener('click', function () {
         if (!Object.keys(rec).length) { S.play('ng'); shake(b); return; }
@@ -1085,7 +1144,7 @@
     g.setTransform(2, 0, 0, 2, 0, 0);
     chartFrame(g, w, h);
     var u = ud(), days = Object.keys(u.days).filter(function (k) { return u.days[k].check; }).sort().slice(-10);
-    if (!days.length) { A.text(g, 'まだ きろくが ないよ', w / 2, h / 2, 16, D.INK, { stroke: false }); return; }
+    if (!days.length) { A.text(g, L('まだ きろくが ないよ'), w / 2, h / 2, 16, D.INK, { stroke: false }); return; }
     var adult = isAdult(), x0 = 30, x1 = w - 12, y0 = adult ? 16 : 36, y1 = h - 28, n = days.length;
     var step = (x1 - x0) / Math.max(1, n);
     g.strokeStyle = 'rgba(90,56,37,.15)'; g.lineWidth = 1;
@@ -1147,7 +1206,7 @@
       A.text(g, shortDay(hh[0]), cx, h - 13, 10, D.INK, { stroke: false });
       if (i === hist.length - 1) A.animal(g, hh[2], cx, y1 - bh - 2, 0.2, 0, {});
     });
-    $('graph-note').textContent = 'いちばん いい きろく：' + animalName(x.rank) + (x.bt ? '（' + x.bt + '）' : '') + '\nあそんだ かず：' + x.plays + 'かい';
+    $('graph-note').textContent = L('いちばん いい きろく：{best}', { best: animalName(x.rank) + paren(resText(x.bt)) }) + '\n' + L('あそんだ かず：{n}かい', { n: x.plays });
   }
 
   // ---------------------------------------------------------------- shop (same as the other games)
@@ -1158,7 +1217,7 @@
     { id: 'cat', name: 'ニャーちゃん', price: 20 },
     { id: 'dog', name: 'ワンちゃん', price: 30 }
   ];
-  var SHOP_NOTE = '★を つかって おともだちを ふやそう！';
+  var SHOP_NOTE = L('★を つかって おともだちを ふやそう！');
   var shop = { t: 0, cards: [] }, buying = null, noteTimer = null;
   function owns(id) { return ud().owned.indexOf(id) >= 0; }
   function wallet() { return C.wallet(ud()); }
@@ -1182,15 +1241,15 @@
       cv.width = 240; cv.height = 240; cv.className = 'chara-canvas';
       card.appendChild(cv);
       var nm = document.createElement('div');
-      nm.className = 'chara-name'; nm.textContent = ch.name;
+      nm.className = 'chara-name'; nm.textContent = L(ch.name);
       card.appendChild(nm);
       var b = document.createElement('button');
-      if (using) { b.className = 'btn chara-btn using'; b.textContent = 'つかってる'; }
-      else if (mine) { b.className = 'btn chara-btn'; b.textContent = 'えらぶ'; }
+      if (using) { b.className = 'btn chara-btn using'; b.textContent = L('つかってる'); }
+      else if (mine) { b.className = 'btn chara-btn'; b.textContent = L('えらぶ'); }
       else {
         var can = wallet() >= ch.price;
         b.className = 'btn chara-btn buy' + (can ? '' : ' short');
-        b.innerHTML = icon('star') + ch.price + (can ? ' で かう' : '');
+        b.innerHTML = can ? L('{star}{price} で かう', { star: icon('star'), price: ch.price }) : icon('star') + ch.price;
       }
       b.addEventListener('click', function () { choose(ch, card); });
       card.appendChild(b);
@@ -1202,10 +1261,10 @@
     var u = ud();
     if (u.chara === ch.id) { S.play('click'); cheer(ch.id); return; }
     if (owns(ch.id)) { S.play('click'); u.chara = ch.id; store(); buildShop(); cheer(ch.id); return; }
-    if (wallet() < ch.price) { S.play('ng'); shake(card); showShopNote('あと ★' + (ch.price - wallet()) + ' で かえるよ'); return; }
+    if (wallet() < ch.price) { S.play('ng'); shake(card); showShopNote(L('あと ★{n} で かえるよ', { n: ch.price - wallet() })); return; }
     S.play('click');
     buying = ch;
-    $('buy-text').innerHTML = ch.name + 'を<br>' + icon('star') + ch.price + ' で かう？';
+    $('buy-text').innerHTML = L('{name}を<br>{star}{price} で かう？', { name: L(ch.name), star: icon('star'), price: ch.price });
     showPanel('buy');
   }
   function confirmBuy() {
@@ -1219,7 +1278,7 @@
     S.play('fanfare'); vibrate(40);
     buildShop(); cheer(ch.id);
     confetti(60);
-    showShopNote(ch.name + 'が なかまに なったよ！');
+    showShopNote(L('{name}が なかまに なったよ！', { name: L(ch.name) }));
     speak(ch.name + 'が なかまに なったよ！');
   }
   function cheer(id) { shop.cards.forEach(function (c) { if (c.id === id) c.happyT = shop.t; }); }
@@ -1260,18 +1319,19 @@
   function openAdmin() {
     var u = me(), d = ud();
     resetArmed = false;
-    $('p-info').innerHTML = 'いまの ユーザー：' + esc(nameOf(u) || 'なまえなし') + '（' + (u.type === 'adult' ? 'おとな' : 'こども') + '）<br>' +
-      'スタンプ ' + C.stampCount(d) + '　あつめた★ ' + C.starsEarned(d) + '　つかった★ ' + d.spent;
-    $('p-all').textContent = '全トレーニング解放：' + (save.all ? 'オン' : 'オフ');
+    $('p-info').innerHTML = L('いまの ユーザー：{name}（{type}）<br>スタンプ {s}　あつめた★ {a}　つかった★ {b}', {
+      name: esc(nameOf(u) || L('なまえなし')), type: L(u.type === 'adult' ? 'おとな' : 'こども'), s: C.stampCount(d), a: C.starsEarned(d), b: d.spent });
+    $('p-all').textContent = L('全トレーニング解放：{v}', { v: L(save.all ? 'オン' : 'オフ') });
     $('p-all').classList.toggle('active', !!save.all);
-    $('p-stop').textContent = 'おしまいの声かけ：' + (save.stopAfter ? save.stopAfter + 'つで' : 'しない');
-    $('p-reset').textContent = 'このユーザーの記録をリセット';
+    $('p-stop').textContent = L('おしまいの声かけ：{v}', { v: save.stopAfter ? L('{n}つで', { n: save.stopAfter }) : L('しない') });
+    $('p-reset').textContent = L('このユーザーの記録をリセット');
     var nv = V.nameVoice();
-    $('p-voice').textContent = (V.credit ? 'ケロはかせの こえ：' + V.credit + '。' : '') +
+    $('p-voice').textContent = (V.credit ? L('ケロはかせの こえ：{credit}。', { credit: V.credit }) : '') +
+      (Lang.cur !== 'ja' ? L('こえは 日本語の ときだけ です。') :
       (V.quiet ? 'パソコンでの確認中は 音も声も出しません（アドレスに ?sound=1 を付けると出ます）。' :
         nv === 'ok' ? 'なまえの読み上げ：日本語の声が見つかりました。' :
         nv === 'none' ? 'なまえの読み上げ：日本語の声が見つかりません。Android の「設定 → システム → 言語と入力 → テキスト読み上げ」で日本語の音声データを入れると、なまえも よびます。' :
-        'なまえの読み上げ：このブラウザでは使えません。');
+        'なまえの読み上げ：このブラウザでは使えません。'));
     showPanel('parent');
   }
 
@@ -1283,9 +1343,9 @@
       var row = document.createElement('div');
       row.className = 'urow' + (u.id === save.cur ? ' cur' : '');
       row.innerHTML = '<span class="udot" style="background:' + C.COLORS[u.color] + '">' + esc(initial(u)) + '</span>' +
-        '<span class="uname">' + esc(nameOf(u) || 'なまえなし') + '</span><span class="utype">' + (u.type === 'adult' ? 'おとな' : 'こども') + '</span>';
+        '<span class="uname">' + esc(nameOf(u) || L('なまえなし')) + '</span><span class="utype">' + L(u.type === 'adult' ? 'おとな' : 'こども') + '</span>';
       var b = document.createElement('button');
-      b.className = 'btn'; b.textContent = 'へんしゅう';
+      b.className = 'btn'; b.textContent = L('へんしゅう');
       b.addEventListener('click', function () { S.play('click'); openEdit(u); });
       row.appendChild(b);
       list.appendChild(row);
@@ -1299,7 +1359,7 @@
     editing = u ? { id: u.id, name: u.name, type: u.type, color: u.color } : { id: null, name: '', type: 'kid', color: free };
     $('ue-name').value = editing.name;
     $('ue-del').hidden = !u || save.users.length <= 1;
-    $('ue-del').textContent = 'けす';
+    $('ue-del').textContent = L('けす');
     renderEdit();
     hidePanel('users');
     showPanel('uedit');
@@ -1420,6 +1480,7 @@
     $('btn-sfx').classList.toggle('off', !save.sfx);
     $('btn-music').classList.toggle('off', !save.music);
     $('btn-voice').classList.toggle('off', !save.voice);
+    $('btn-voice').hidden = Lang.cur !== 'ja';   // (the voice speaks Japanese only)
   }
 
   function wire() {
@@ -1475,7 +1536,7 @@
     $('p-all').addEventListener('click', function () { save.all = !save.all; store(); openAdmin(); });
     $('p-stop').addEventListener('click', function () { save.stopAfter = save.stopAfter === 3 ? 5 : save.stopAfter === 5 ? 0 : 3; store(); openAdmin(); });
     $('p-reset').addEventListener('click', function () {
-      if (!resetArmed) { resetArmed = true; $('p-reset').textContent = 'もう一度押すと消えます'; return; }
+      if (!resetArmed) { resetArmed = true; $('p-reset').textContent = L('もう一度押すと消えます'); return; }
       C.resetUser(save, save.cur); store(); openAdmin(); refreshTitle();
     });
     $('p-close').addEventListener('click', function () { hidePanel('parent'); refreshTitle(); });
@@ -1485,7 +1546,7 @@
     document.querySelectorAll('#ue-type button').forEach(function (b) { b.addEventListener('click', function () { editing.type = b.getAttribute('data-v'); renderEdit(); }); });
     $('ue-ok').addEventListener('click', function () { S.play('click'); saveEdit(); });
     $('ue-del').addEventListener('click', function () {
-      if (!delArmed) { delArmed = true; $('ue-del').textContent = 'もう一度で けす'; return; }
+      if (!delArmed) { delArmed = true; $('ue-del').textContent = L('もう一度で けす'); return; }
       C.removeUser(save, editing.id); store();
       hidePanel('uedit'); buildUsers(); showPanel('users'); refreshTitle();
     });
@@ -1551,6 +1612,10 @@
 
   window.addEventListener('resize', resize);
   resize();
+  // the chosen language: the title logo, the days of the week and the fixed text of the page
+  Lang.logo(document.querySelector('#title .logo'), Lang.pick(GAME_LOGO), ['#86d65c', '#ff8fc0', '#ffb347', '#6cc6ff', '#b58cff', '#ffd23d', '#ff8fc0', '#6cc6ff', '#86d65c', '#ffa552', '#b58cff', '#ff8fc0']);
+  if (Lang.cur !== 'ja') document.querySelectorAll('.cal-week span').forEach(function (el, i) { el.textContent = GUNGUN_LANG[Lang.cur].week[i]; });
+  Lang.apply();
   makeStampImages();
   wire();
   if (window.Versus) window.Versus.init(host);

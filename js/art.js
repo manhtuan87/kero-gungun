@@ -6,7 +6,7 @@ var Art = (function () {
   'use strict';
   var D = Draw, INK = D.INK, TAU = Math.PI * 2;
   var circle = D.circle, ellipse = D.ellipse, paint = D.paint, roundRect = D.roundRect;
-  var FONT = '"M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", "BIZ UDPGothic", sans-serif';
+  var FONT = '"M PLUS Rounded 1c", "Jua", "Hiragino Maru Gothic ProN", "BIZ UDPGothic", sans-serif';
 
   // ---------------------------------------------------------------- small helpers
 
@@ -52,6 +52,9 @@ var Art = (function () {
     o = o || {};
     ctx.save();
     ctx.font = (o.weight || 800) + ' ' + size + 'px ' + FONT;
+    // a text that would not fit (a long one in another language) is drawn smaller: o.max, or 330 wide
+    var fit = Math.min(1, (o.max || 330) / Math.max(1, ctx.measureText(str).width));
+    if (fit < 1) { size *= fit; ctx.font = (o.weight || 800) + ' ' + size + 'px ' + FONT; if (o.lw) o = Object.assign({}, o, { lw: o.lw * fit }); }
     ctx.textAlign = o.align || 'center'; ctx.textBaseline = 'middle';
     ctx.lineJoin = 'round';
     if (o.stroke !== false) { ctx.lineWidth = o.lw || size * 0.2; ctx.strokeStyle = o.stroke || INK; ctx.strokeText(str, x, y); }

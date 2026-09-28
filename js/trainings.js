@@ -56,7 +56,16 @@
       }
       return null;
     },
-    fmtTime: function (s) { return (Math.round(s * 10) / 10).toFixed(1) + 'びょう'; }
+    fmtTime: function (s) { return (Math.round(s * 10) / 10).toFixed(1) + 'びょう'; },
+    // What a run says on the result screen (and in the records): a small object that the game puts into
+    // words in the chosen language (app.js resText), so a record reads right after the language changes.
+    res: {
+      time: function (t, m) { return { k: 'time', t: Math.round(t * 10) / 10, m: m || 0 }; },
+      right: function (a, b) { return { k: 'right', a: a, b: b }; },
+      jump: function (o, t, m) { return { k: 'jump', o: o, t: t, m: m }; },
+      pick: function (h, w, n) { return { k: 'pick', h: h, w: w, n: n }; },
+      piano: function (m, t) { return { k: 'piano', m: m, t: Math.round(t * 10) / 10 }; }
+    }
   };
 
   return { list: list, byId: byId, register: register, U: U };

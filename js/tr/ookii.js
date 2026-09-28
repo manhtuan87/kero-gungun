@@ -36,7 +36,7 @@
       api.hand(null);
       if (ri >= rounds.length) {
         phase = 'end';
-        api.finish({ score: time + mistakes * 2, text: U.fmtTime(time) + (mistakes ? '・まちがい ' + mistakes : '') });
+        api.finish({ score: time + mistakes * 2, text: U.res.time(time, mistakes) });
         return;
       }
       cur = rounds[ri];
@@ -69,7 +69,7 @@
         } else if (phase === 'out' && pt > 0.45) next();
       },
       draw: function (c, clock) {
-        A.text(c, 'いちばん おおきい かずは どれ？', 180, 100, 21, '#fff', { lw: 6 });
+        A.text(c, L('いちばん おおきい かずは どれ？'), 180, 100, 21, '#fff', { lw: 6 });
         if (!cur) return;
         cur.balloons.forEach(function (b) {
           if (b.popped) return;

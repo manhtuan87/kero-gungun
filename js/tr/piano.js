@@ -10,8 +10,11 @@
   var KEY_COLORS = ['#f04a4a', '#ff9124', '#ffd21f', '#45c24c', '#25b5ec', '#2f5fd9', '#9a52e0', '#ff5eb4'];
 
   // A note name; the high ど gets a dot on top (as in numbered music notation) so the two ど differ.
+  // size: for a one-letter name; longer names (ふぁ, Son) are drawn smaller
   function noteName(c, A, D, k, x, y, size, colored) {
-    A.text(c, DATA.KEYS[k], x, y, size, colored ? '#fff' : D.INK, colored ? { lw: size * 0.28 } : { stroke: false });
+    var name = DATA.KEYS[k];
+    size *= name.length >= 3 ? 0.68 : name.length === 2 ? 0.78 : 1;
+    A.text(c, name, x, y, size, colored ? '#fff' : D.INK, colored ? { lw: size * 0.28 } : { stroke: false });
     if (k === 7) { D.circle(c, x, y - size * 0.82, size * 0.16); D.paint(c, colored ? '#fff' : D.INK, colored ? D.INK : null, 2); }
   }
   var KEY_Y = 420, KEY_H = 206, KEY_W = 45;
@@ -50,7 +53,7 @@
         if (i >= notes.length) {
           phase = 'bravo'; pt = 0;
           hak.mode = 'happy'; hak.mt = 0;
-          api.word('じょうず！', 180, 200, 50, '#ff8fc0', 1.4);
+          api.word(L('じょうず！'), 180, 200, 50, '#ff8fc0', 1.4);
           api.speak('じょうず！');
         }
       } else {
@@ -84,7 +87,7 @@
           if (pt > auto.end) {
             phase = 'end';
             var score = (time + mistakes * 2) / notes.length;
-            api.finish({ score: score, text: 'まちがい ' + mistakes + 'かい・' + U.fmtTime(time), delay: 300 });
+            api.finish({ score: score, text: U.res.piano(mistakes, time), delay: 300 });
           }
         }
       },
@@ -100,7 +103,7 @@
           var n = notes[j], x = X0 + (j - scroll) * STEP, y = noteY(n.k), past = j < i;
           c.save(); c.globalAlpha = past ? 0.35 : 1;
           D.circle(c, x, y, 21); D.paint(c, p.colors ? KEY_COLORS[n.k] : '#fff', D.INK, 3);
-          noteName(c, A, D, n.k, x, y + 2, n.k === 3 ? 14 : 18, p.colors);
+          noteName(c, A, D, n.k, x, y + 2, 18, p.colors);
           if (n.len >= 2) { c.beginPath(); c.moveTo(x + 22, y); c.lineTo(x + 22 + (n.len - 1) * 16, y); D.paint(c, null, p.colors ? KEY_COLORS[n.k] : D.INK, 5); }
           c.restore();
         }
@@ -125,7 +128,7 @@
             c.restore();
             D.hand(c, kx + KEY_W / 2 + 4, KEY_Y + 110 + Math.sin(clock * 8) * 4, 0.8, false);
           }
-          noteName(c, A, D, k, kx + KEY_W / 2 + sx, KEY_Y + KEY_H - 24 + (down ? 4 : 0), k === 3 ? 16 : 21, p.colors);
+          noteName(c, A, D, k, kx + KEY_W / 2 + sx, KEY_Y + KEY_H - 24 + (down ? 4 : 0), 21, p.colors);
         }
         c.save(); c.translate(318, 386); c.scale(0.42, 0.42);
         D.critter(c, { x: 0, y: 0, t: clock, kind: 'frog', look: { x: -300, y: 0 }, mode: hak.mode, mt: hak.mt, wear: A.hakase, noSeat: true });

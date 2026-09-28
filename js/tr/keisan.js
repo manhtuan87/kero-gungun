@@ -85,7 +85,7 @@
             shown = null;
             if (i >= qs.length) {
               var score = time + mistakes * 3;
-              api.finish({ score: score, text: U.fmtTime(time) + (mistakes ? '・まちがい ' + mistakes : '') });
+              api.finish({ score: score, text: U.res.time(time, mistakes) });
             } else active = true;
           }
         }
@@ -95,7 +95,7 @@
         var q = qs[Math.min(i, qs.length - 1)], cur = shown ? qs[i - 1] : q;
         if (!cur) return;
         if (!active && !shown && i === 0) {
-          A.text(c, 'よーい…', B.x + B.w / 2, B.y + B.h / 2, 40, 'rgba(255,255,255,.85)', { stroke: false });
+          A.text(c, L('よーい…'), B.x + B.w / 2, B.y + B.h / 2, 40, 'rgba(255,255,255,.85)', { stroke: false });
         } else {
           var big = String(cur.a).length > 1 || String(cur.b).length > 1, fs = big ? 50 : 60;
           var xs = big ? [62, 136, 196, 246, 300] : [74, 128, 180, 232, 286], y = B.y + 122;

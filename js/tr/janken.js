@@ -30,7 +30,7 @@
     var a = ASK[ask], s = 0.6 + 0.4 * Math.min(1, k * 4);
     c.save(); c.translate(x, y); c.scale(s, s);
     D.roundRect(c, -118, -34, 236, 68, 34); D.paint(c, a.color, D.INK, 4);
-    A.text(c, a.text, 18, 2, 42, '#fff', { lw: 9 });
+    A.text(c, L(a.text), 18, 2, 42, '#fff', { lw: 9, max: 176 });
     // a mark next to the word, so it can be seen without reading
     if (ask === 'win') {
       c.save(); c.translate(-80, 0);
@@ -56,7 +56,7 @@
     var HX = 180, HY = 238;
 
     var ch = api.choices([0, 1, 2].map(function (h) {
-      return { draw: function (c, w, hh) { A.jankenHand(c, h, w / 2, hh / 2 - 13, Math.min(w, hh) / 134); A.text(c, HANDS[h], w / 2, hh - 12, 17, D.INK, { stroke: false }); } };
+      return { draw: function (c, w, hh) { A.jankenHand(c, h, w / 2, hh / 2 - 13, Math.min(w, hh) / 134); A.text(c, L(HANDS[h]), w / 2, hh - 12, 17, D.INK, { stroke: false, max: w - 6 }); } };
     }), tap, { top: 478, h: 130, gap: 10 });
 
     function next() {
@@ -64,7 +64,7 @@
       ch.clear();
       if (i >= rounds.length) {
         phase = 'end'; active = false;
-        api.finish({ score: time + mistakes * 3, text: U.fmtTime(time) + (mistakes ? '・まちがい ' + mistakes : '') });
+        api.finish({ score: time + mistakes * 3, text: U.res.time(time, mistakes) });
         return;
       }
       var r = rounds[i], prev = rounds[i - 1];
@@ -124,12 +124,12 @@
         D.critter(c, { x: 0, y: 0, t: clock, kind: 'frog', look: { x: 0, y: -200 }, mode: hak.mode, mt: hak.mt, wear: A.hakase });
         c.restore();
         if (!cur) {
-          A.text(c, 'じゃん けん…', 180, 200, 40, '#fff', { lw: 9 });
+          A.text(c, L('じゃん けん…'), 180, 200, 40, '#fff', { lw: 9 });
           return;
         }
         if (phase === 'switch') {
           banner(c, A, D, cur.ask, 180, 200, switchT);
-          A.text(c, i === 0 ? 'この ことばを みてね' : 'ことばが かわったよ！', 180, 280, 22, D.INK, { stroke: false });
+          A.text(c, L(i === 0 ? 'この ことばを みてね' : 'ことばが かわったよ！'), 180, 280, 22, D.INK, { stroke: false });
           return;
         }
         banner(c, A, D, cur.ask, 180, 112, 1);

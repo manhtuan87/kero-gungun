@@ -27,19 +27,19 @@ var Versus = (function () {
     var card = $('vs-card');
     setup.wait = host.save.handicap;
     card.innerHTML =
-      '<div class="vs-title">なにで あそぶ？</div><div class="vs-games" id="vs-games"></div>' +
-      row('むずかしさ', 'vs-level', [['e', 'かんたん'], ['n', 'ふつう'], ['h', 'むずかしい']]) +
-      row('うえ（ピンク）', 'vs-top-type', [['kid', 'こども'], ['adult', 'おとな']]) +
-      row('した（みどり）', 'vs-bottom-type', [['kid', 'こども'], ['adult', 'おとな']]) +
-      row('おとなが まつ びょう', 'vs-wait', [['0', '0'], ['1', '1'], ['2', '2'], ['3', '3']]) +
-      '<button id="vs-start" class="btn big"><span data-icon="next"></span>はじめる</button>' +
-      '<p class="vs-note">スマホを つくえに おいて<br>むかいあって あそんでね</p>';
+      '<div class="vs-title">' + L('なにで あそぶ？') + '</div><div class="vs-games" id="vs-games"></div>' +
+      row(L('むずかしさ'), 'vs-level', [['e', L('かんたん')], ['n', L('ふつう')], ['h', L('むずかしい')]]) +
+      row(L('うえ（ピンク）'), 'vs-top-type', [['kid', L('こども')], ['adult', L('おとな')]]) +
+      row(L('した（みどり）'), 'vs-bottom-type', [['kid', L('こども')], ['adult', L('おとな')]]) +
+      row(L('おとなが まつ びょう'), 'vs-wait', [['0', '0'], ['1', '1'], ['2', '2'], ['3', '3']]) +
+      '<button id="vs-start" class="btn big"><span data-icon="next"></span>' + L('はじめる') + '</button>' +
+      '<p class="vs-note">' + L('スマホを つくえに おいて<br>むかいあって あそんでね') + '</p>';
     var gbox = $('vs-games');
     GAMES.forEach(function (g) {
       var b = document.createElement('button');
       b.className = 'vs-game' + (setup.game === g.id ? ' on' : '');
       b.appendChild(host.iconCanvas(T.byId[g.id], 52));
-      b.insertAdjacentHTML('beforeend', '<span>' + g.name + '</span>');
+      b.insertAdjacentHTML('beforeend', '<span>' + L(g.name) + '</span>');
       b.addEventListener('click', function () { S.play('select'); setup.game = g.id; open(); });
       gbox.appendChild(b);
     });
@@ -84,8 +84,8 @@ var Versus = (function () {
 
   function buildHalf(id) {
     var el = $(id === 'top' ? 'vs-top' : 'vs-bottom'), pl = play.players[id];
-    el.innerHTML = '<div class="vs-score" style="--c:' + pl.side.color + '"><i></i><b>' + pl.side.name + '</b> <span class="pts">0</span>てん</div>' +
-      '<div class="vs-wait-cover" hidden><b>まってね</b><span class="n">2</span></div>' +
+    el.innerHTML = '<div class="vs-score" style="--c:' + pl.side.color + '"><i></i><b>' + L(pl.side.name) + '</b> ' + L('{n}てん', { n: '<span class="pts">0</span>' }) + '</div>' +
+      '<div class="vs-wait-cover" hidden><b>' + L('まってね') + '</b><span class="n">2</span></div>' +
       '<div class="vs-end" hidden></div>';
     var box = document.createElement('div');
     if (play.game === 'janken') {
@@ -94,7 +94,7 @@ var Versus = (function () {
         var b = document.createElement('button');
         b.className = 'cho';
         var cv = host.makeCanvas(96, 96), g = cv.getContext('2d');
-        g.scale(2, 2); A.jankenHand(g, h, 48, 38, 0.6); A.text(g, ['グー', 'チョキ', 'パー'][h], 48, 88, 13, D.INK, { stroke: false });
+        g.scale(2, 2); A.jankenHand(g, h, 48, 38, 0.6); A.text(g, L(['グー', 'チョキ', 'パー'][h]), 48, 88, 13, D.INK, { stroke: false, max: 90 });
         b.appendChild(cv);
         b.addEventListener('pointerdown', function (e) { e.preventDefault(); host.press(b); answer(id, h, b); });
         box.appendChild(b);
@@ -170,9 +170,9 @@ var Versus = (function () {
       var pl = play.players[sd.id], other = play.players[sd.id === 'top' ? 'bottom' : 'top'];
       var end = pl.el.querySelector('.vs-end');
       end.hidden = false;
-      end.innerHTML = '<div class="vs-end-title">' + (pl.score === other.score ? 'ひきわけ！' : pl.score > other.score ? 'かち！' : 'まけ… つぎは がんばろう') + '</div>' +
+      end.innerHTML = '<div class="vs-end-title">' + L(pl.score === other.score ? 'ひきわけ！' : pl.score > other.score ? 'かち！' : 'まけ… つぎは がんばろう') + '</div>' +
         '<div class="vs-end-score">' + pl.score + ' − ' + other.score + '</div>' +
-        '<div class="panel-row"><button class="btn vs-again">もういちど</button><button class="btn vs-exit">おわる</button></div>';
+        '<div class="panel-row"><button class="btn vs-again">' + L('もういちど') + '</button><button class="btn vs-exit">' + L('おわる') + '</button></div>';
       end.querySelector('.vs-again').addEventListener('click', function () { S.play('click'); start(); });
       end.querySelector('.vs-exit').addEventListener('click', function () { S.play('click'); history.back(); });
     });
@@ -217,7 +217,7 @@ var Versus = (function () {
     c.beginPath(); c.rect(0, 4, W, HALF - 4); c.clip();
     D.roundRect(c, 12, 14, W - 24, 152, 22); D.paint(c, 'rgba(255,255,255,.75)', D.INK, 3);
     if (play.state === 'ready') {
-      A.text(c, 'よーい…', 180, 90, 34, '#fff', { lw: 7 });
+      A.text(c, L('よーい…'), 180, 90, 34, '#fff', { lw: 7 });
       A.text(c, play.round + ' / ' + ROUNDS, 180, 136, 18, D.INK, { stroke: false });
     } else if (play.state !== 'end') {
       if (play.game === 'tori') {
@@ -248,13 +248,13 @@ var Versus = (function () {
         A.jankenHand(c, q.hand, 104, 88, 0.86, '#9ee07a');
         c.save(); c.translate(258, 90);
         D.roundRect(c, -72, -28, 144, 56, 28); D.paint(c, ASK_COLOR[q.ask], D.INK, 3.5);
-        A.text(c, ASK_TEXT[q.ask], 0, 2, 30, '#fff', { lw: 7 });
+        A.text(c, L(ASK_TEXT[q.ask]), 0, 2, 30, '#fff', { lw: 7, max: 130 });
         c.restore();
       }
       if (play.state === 'reveal') {
-        var ans = play.game === 'janken' ? ['グー', 'チョキ', 'パー'][q.answer] : String(q.answer);
+        var ans = play.game === 'janken' ? L(['グー', 'チョキ', 'パー'][q.answer]) : String(q.answer);
         D.roundRect(c, 110, 170, 140, 30, 15); D.paint(c, '#fffdf5', D.INK, 2.5);
-        A.text(c, 'こたえ：' + ans, 180, 186, 16, D.INK, { stroke: false });
+        A.text(c, L('こたえ：{a}', { a: ans }), 180, 186, 16, D.INK, { stroke: false, max: 134 });
         if (play.winner === id) { A.maru(c, 300, 60, 34, Math.min(1, pl.markT * 4)); A.text(c, '+1', 300, 120, 22, '#ff8fc0', { lw: 5 }); }
       } else if (pl.mark === 'ng') {
         A.batsu(c, 300, 60, 30, 0.85);

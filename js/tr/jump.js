@@ -15,7 +15,7 @@
     var D = G.Draw, A = G.Art;
     var sets = gen(p, api.rnd), si = 0, cur = null, t = 0, phase = 'wait', pt = 0, clock = 0;
     var hero = { y: 0, vy: 0, trip: 0 }, obs = [], spawn = 1.2, gapT = -1, stats = { over: 0, touch: 0, hit: 0, miss: 0 }, pops = [];
-    var jumpBtn = api.bigButton('ジャンプ', jump, { x: 14, y: 426, w: 150, h: 170, size: 26 });
+    var jumpBtn = api.bigButton(L('ジャンプ'), jump, { x: 14, y: 426, w: 150, h: 170, size: 26 });
 
     function newSet() { cur = { nums: sets[si++ % sets.length], t: 0, shake: -1 }; }
     function jump() {
@@ -25,7 +25,7 @@
     function finish() {
       phase = 'end';
       var score = Math.max(0, stats.over + stats.touch - stats.hit - stats.miss);
-      api.finish({ score: score, text: 'とんだ ' + stats.over + '・タッチ ' + stats.touch + '・ミス ' + (stats.hit + stats.miss), delay: 400 });
+      api.finish({ score: score, text: U.res.jump(stats.over, stats.touch, stats.hit + stats.miss), delay: 400 });
     }
 
     return {
@@ -81,7 +81,7 @@
         c.restore();
         c.restore();
         // the numbers
-        A.text(c, 'おおきい かずを タッチ！', 250, 364, 17, '#fff', { lw: 5 });
+        A.text(c, L('おおきい かずを タッチ！'), 250, 364, 17, '#fff', { lw: 5, max: 200 });
         if (cur && phase !== 'wait') {
           cur.nums.forEach(function (n, i) {
             var sp = SPOTS[cur.nums.length][i], sx = cur.shake === i ? Math.sin(cur.t * 60) * 4 : 0;

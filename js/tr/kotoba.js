@@ -23,20 +23,20 @@
     var qs = gen(p, api.rnd), qi = -1, Q = null, filled = 0, used = [], phase = 'wait', pt = 0, time = 0, mistakes = 0, since = 0;
     var ch = null, maxTiles = 0;
     qs.forEach(function (q) { maxTiles = Math.max(maxTiles, q.tiles.length); });
-    var cols = maxTiles > 5 ? 4 : maxTiles, rows = Math.ceil(maxTiles / cols);
+    var cols = maxTiles > 8 ? 5 : maxTiles > 5 ? 4 : maxTiles, rows = Math.ceil(maxTiles / cols);
 
     function build() {
       if (ch) ch.remove();
       var items = Q.tiles.map(function (t) { return { label: t, size: 38 }; });
       while (items.length < cols * rows) items.push({ label: '', cls: 'gone' });
-      ch = api.choices(items, tap, { top: rows > 1 ? 452 : 480, h: 74, cols: cols, gap: 10, left: cols < 4 ? 40 : 16, right: cols < 4 ? 40 : 16 });
+      ch = api.choices(items, tap, { top: rows > 2 ? 420 : rows > 1 ? 452 : 480, h: rows > 2 ? 62 : 74, cols: cols, gap: 10, left: cols < 4 ? 40 : 16, right: cols < 4 ? 40 : 16 });
     }
     function next() {
       qi++;
       api.hand(null);
       if (qi >= qs.length) {
         phase = 'end';
-        api.finish({ score: time + mistakes * 2, text: U.fmtTime(time) + (mistakes ? '・まちがい ' + mistakes : '') });
+        api.finish({ score: time + mistakes * 2, text: U.res.time(time, mistakes) });
         return;
       }
       Q = qs[qi]; filled = 0; used = []; phase = 'play'; pt = 0; since = 0;
@@ -79,11 +79,11 @@
         } else if (phase === 'done' && pt > 1.1) next();
       },
       draw: function (c, clock) {
-        A.text(c, 'えの なまえを つくろう！', 180, 80, 22, '#fff', { lw: 6 });
+        A.text(c, L('えの なまえを つくろう！'), 180, 80, 22, '#fff', { lw: 6 });
         A.card(c, 100, 100, 160, 170, '#c9f0b8');
         if (Q) P.draw(c, Q.id, 180, 185, 124, clock);
         if (!Q) return;
-        var n = Q.word.length, size = n > 4 ? 52 : 60, gap = 8, w = n * size + (n - 1) * gap, x0 = 180 - w / 2, y = 298;
+        var n = Q.word.length, gap = 8, size = Math.min(n > 4 ? 52 : 60, Math.floor((340 - (n - 1) * gap) / n)), w = n * size + (n - 1) * gap, x0 = 180 - w / 2, y = 298;
         for (var i = 0; i < n; i++) {
           var x = x0 + i * (size + gap);
           D.roundRect(c, x, y, size, size, 12);
@@ -119,7 +119,7 @@
     icon: function (c, t) {
       var A = G.Art, D = G.Draw, P = G.Pics;
       P.draw(c, 'apple', 50, 34, 46, 0);
-      ['り', 'ん', 'ご'].forEach(function (s, i) {
+      (typeof Lang !== 'undefined' ? Lang.pick({ ja: ['り', 'ん', 'ご'], vi: ['t', 'á', 'o'], en: ['A', 'P', 'P'], ko: ['사', '과'] }) : ['り', 'ん', 'ご']).forEach(function (s, i) {
         var bob = Math.sin((t || 0) * 3 + i) * 2;
         D.roundRect(c, 12 + i * 27, 64 + bob, 24, 24, 6); D.paint(c, '#fff8dc', D.INK, 2.4);
         A.text(c, s, 24 + i * 27, 76 + bob, 16, D.INK, { stroke: false });

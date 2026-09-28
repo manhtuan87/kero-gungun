@@ -27,7 +27,7 @@
       api.hand(null);
       if (ri >= rounds.length) {
         phase = 'end';
-        api.finish({ score: cleared, text: cleared + 'もん せいかい（' + rounds.length + 'もん）' });
+        api.finish({ score: cleared, text: U.res.right(cleared, rounds.length) });
         return;
       }
       var R = rounds[ri];
@@ -100,13 +100,13 @@
         c.restore();
         if (phase === 'show' || phase === 'appear') {
           var left = phase === 'show' ? Math.max(0, 1 - pt / p.show) : 1;
-          A.text(c, 'おぼえてね！', 180, 84, 24, '#fff', { lw: 6 });
+          A.text(c, L('おぼえてね！'), 180, 84, 24, '#fff', { lw: 6 });
           D.roundRect(c, 60, 535, 240, 16, 8); D.paint(c, 'rgba(255,255,255,.7)', D.INK, 2.5);
           if (left > 0.02) { D.roundRect(c, 62, 537, 236 * left, 12, 6); D.paint(c, '#ffb347'); }
         } else if (phase === 'input') {
-          A.text(c, '1から じゅんばんに タッチ！', 180, 84, 21, '#fff', { lw: 6 });
+          A.text(c, L('1から じゅんばんに タッチ！'), 180, 84, 21, '#fff', { lw: 6 });
         } else if (phase === 'bad') {
-          A.text(c, 'ざんねん！ こたえは これ', 180, 84, 21, '#fff', { lw: 6 });
+          A.text(c, L('ざんねん！ こたえは これ'), 180, 84, 21, '#fff', { lw: 6 });
         }
         eggs.forEach(function (e) {
           if (e.pop <= 0) return;

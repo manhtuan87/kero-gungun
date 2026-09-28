@@ -67,7 +67,7 @@
       api.hand(null);
       if (qi >= qs.length) {
         phase = 'end';
-        api.finish({ score: time + mistakes * 5, text: U.fmtTime(time) + (mistakes ? '・まちがい ' + mistakes : '') });
+        api.finish({ score: time + mistakes * 5, text: U.res.time(time, mistakes) });
         return;
       }
       Q = qs[qi]; grid = Q.grid.slice(); sel = firstEmpty(); held = 0; phase = 'play'; pt = 0; since = 0; pops = {};
@@ -119,7 +119,7 @@
         } else if (phase === 'done' && pt > 1.6) next();
       },
       draw: function (c) {
-        A.text(c, 'たて・よこ・へやに おなじ たまごは 1つ！', 180, 84, 17, '#fff', { lw: 5 });
+        A.text(c, L('たて・よこ・へやに おなじ たまごは 1つ！'), 180, 84, 17, '#fff', { lw: 5 });
         if (!Q) return;
         var W2 = cell * size;
         D.roundRect(c, gx - 6, gy - 6, W2 + 12, W2 + 12, 16); D.paint(c, '#fffdf5', D.INK, 4);
@@ -143,7 +143,7 @@
         for (var bxI = Q.box.w; bxI < size; bxI += Q.box.w) { c.beginPath(); c.moveTo(gx + bxI * cell, gy); c.lineTo(gx + bxI * cell, gy + W2); c.stroke(); }
         for (var byI = Q.box.h; byI < size; byI += Q.box.h) { c.beginPath(); c.moveTo(gx, gy + byI * cell); c.lineTo(gx + W2, gy + byI * cell); c.stroke(); }
         chicks.forEach(function (ch) { if (ch.t > 0) D.chick(c, ch.x, ch.y, size === 6 ? 0.6 : 0.8, clock, { fly: true, flap: ch.t * 26, shell: ch.shell, happy: true }); });
-        if (held && phase === 'play') A.text(c, 'あいてる マスを タッチ！', 180, gy + W2 + 26, 18, '#fff', { lw: 5 });
+        if (held && phase === 'play') A.text(c, L('あいてる マスを タッチ！'), 180, gy + W2 + 26, 18, '#fff', { lw: 5 });
       },
       down: function (q) {
         if (phase !== 'play') return;
