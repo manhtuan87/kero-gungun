@@ -64,7 +64,7 @@
       ch.clear();
       if (i >= rounds.length) {
         phase = 'end'; active = false;
-        api.finish({ score: time + mistakes * 3, text: U.res.time(time, mistakes) });
+        api.finish({ score: time + mistakes * 3, acc: U.acc(mistakes, rounds.length), text: U.res.time(time, mistakes) });
         return;
       }
       var r = rounds[i], prev = rounds[i - 1];

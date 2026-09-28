@@ -27,7 +27,7 @@
       api.hand(null);
       if (ri >= rounds.length) {
         phase = 'end';
-        api.finish({ score: cleared, text: U.res.right(cleared, rounds.length) });
+        api.finish({ score: cleared, acc: cleared / rounds.length, text: U.res.right(cleared, rounds.length) });
         return;
       }
       var R = rounds[ri];

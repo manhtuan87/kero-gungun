@@ -54,6 +54,7 @@
   function start(api, p) {
     var D = G.Draw, A = G.Art;
     var qs = gen(p, api.rnd), qi = -1, Q = null, grid = null, sel = -1, held = 0, time = 0, mistakes = 0, phase = 'wait', pt = 0, since = 0;
+    var blanks = qs.reduce(function (n, q) { return n + q.grid.filter(function (v) { return v === 0; }).length; }, 0);   // cells to fill
     var pops = {}, clock = 0, chicks = [];
     var size = p.size, cell = size === 6 ? 50 : 70, gx = (360 - cell * size) / 2, gy = 104;
     var items = [];
@@ -67,7 +68,7 @@
       api.hand(null);
       if (qi >= qs.length) {
         phase = 'end';
-        api.finish({ score: time + mistakes * 5, text: U.res.time(time, mistakes) });
+        api.finish({ score: time + mistakes * 5, acc: U.acc(mistakes, blanks), text: U.res.time(time, mistakes) });
         return;
       }
       Q = qs[qi]; grid = Q.grid.slice(); sel = firstEmpty(); held = 0; phase = 'play'; pt = 0; since = 0; pops = {};

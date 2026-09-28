@@ -649,7 +649,7 @@
     }
     ud().seen[r.tr.id] = true;
     if (r.check) { run = null; checkNext(r, res); return; }
-    var out = C.addRun(save, { id: r.tr.id, level: r.level, kind: r.tr.kind, cuts: r.tr.ranks[r.level], score: res.score, text: resKeep(res.text) });
+    var out = C.addRun(save, { id: r.tr.id, level: r.level, kind: r.tr.kind, cuts: r.tr.ranks[r.level], score: res.score, acc: res.acc, text: resKeep(res.text) });
     store();
     run = null;
     showResult(r, res, out);

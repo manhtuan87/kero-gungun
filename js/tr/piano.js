@@ -88,7 +88,7 @@
           if (pt > auto.end) {
             phase = 'end';
             var score = (time + mistakes * 2) / notes.length;
-            api.finish({ score: score, text: U.res.piano(mistakes, time), delay: 300 });
+            api.finish({ score: score, acc: U.acc(mistakes, notes.length), text: U.res.piano(mistakes, time), delay: 300 });
           }
         }
       },

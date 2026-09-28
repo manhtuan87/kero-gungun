@@ -36,7 +36,7 @@
       api.hand(null);
       if (ri >= rounds.length) {
         phase = 'end';
-        api.finish({ score: time + mistakes * 2, text: U.res.time(time, mistakes) });
+        api.finish({ score: time + mistakes * 2, acc: U.acc(mistakes, rounds.length), text: U.res.time(time, mistakes) });
         return;
       }
       cur = rounds[ri];

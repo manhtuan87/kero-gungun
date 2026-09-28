@@ -36,7 +36,7 @@
       api.hand(null);
       if (bi >= boards.length) {
         phase = 'end';
-        api.finish({ score: time + mistakes * 2, text: U.res.time(time, mistakes) });
+        api.finish({ score: time + mistakes * 2, acc: U.acc(mistakes, boards.length * p.n), text: U.res.time(time, mistakes) });
         return;
       }
       pads = boards[bi].map(function (q, i) { return { label: q.label, x: q.x, y: q.y, i: i, done: false, shake: 0 }; });

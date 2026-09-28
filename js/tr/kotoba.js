@@ -21,8 +21,8 @@
   function start(api, p) {
     var D = G.Draw, A = G.Art, P = G.Pics;
     var qs = gen(p, api.rnd), qi = -1, Q = null, filled = 0, used = [], phase = 'wait', pt = 0, time = 0, mistakes = 0, since = 0;
-    var ch = null, maxTiles = 0;
-    qs.forEach(function (q) { maxTiles = Math.max(maxTiles, q.tiles.length); });
+    var ch = null, maxTiles = 0, letters = 0;
+    qs.forEach(function (q) { maxTiles = Math.max(maxTiles, q.tiles.length); letters += q.word.length; });
     var cols = maxTiles > 8 ? 5 : maxTiles > 5 ? 4 : maxTiles, rows = Math.ceil(maxTiles / cols);
 
     function build() {
@@ -36,7 +36,7 @@
       api.hand(null);
       if (qi >= qs.length) {
         phase = 'end';
-        api.finish({ score: time + mistakes * 2, text: U.res.time(time, mistakes) });
+        api.finish({ score: time + mistakes * 2, acc: U.acc(mistakes, letters), text: U.res.time(time, mistakes) });
         return;
       }
       Q = qs[qi]; filled = 0; used = []; phase = 'play'; pt = 0; since = 0;

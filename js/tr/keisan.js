@@ -85,7 +85,7 @@
             shown = null;
             if (i >= qs.length) {
               var score = time + mistakes * 3;
-              api.finish({ score: score, text: U.res.time(time, mistakes) });
+              api.finish({ score: score, acc: U.acc(mistakes, qs.length), text: U.res.time(time, mistakes) });
             } else active = true;
           }
         }

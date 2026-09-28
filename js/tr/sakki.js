@@ -55,7 +55,7 @@
       api.hand(null);
       if (j >= g.qs.length) {
         phase = 'end';
-        api.finish({ score: correct, text: U.res.right(correct, g.qs.length) });
+        api.finish({ score: correct, acc: correct / g.qs.length, text: U.res.right(correct, g.qs.length) });
         return;
       }
       if (p.mode === 'now') { showCard(j); phase = 'look'; pt = 0; ch.enable(false); }

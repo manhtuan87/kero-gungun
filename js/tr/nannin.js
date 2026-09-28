@@ -62,7 +62,7 @@
       qi++;
       if (qi >= qs.length) {
         phase = 'end';
-        api.finish({ score: correct, text: U.res.right(correct, qs.length) });
+        api.finish({ score: correct, acc: correct / qs.length, text: U.res.right(correct, qs.length) });
         return;
       }
       Q = qs[qi];

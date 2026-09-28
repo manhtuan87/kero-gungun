@@ -25,7 +25,9 @@
     function finish() {
       phase = 'end';
       var score = Math.max(0, stats.over + stats.touch - stats.hit - stats.miss);
-      api.finish({ score: score, text: U.res.jump(stats.over, stats.touch, stats.hit + stats.miss), delay: 400 });
+      // how much was right: the jumping half and the touching half count the same
+      var acc = (U.acc(stats.hit, stats.over + stats.hit) + U.acc(stats.miss, stats.touch)) / 2;
+      api.finish({ score: score, acc: acc, text: U.res.jump(stats.over, stats.touch, stats.hit + stats.miss), delay: 400 });
     }
 
     return {
@@ -47,7 +49,7 @@
         if (spawn <= 0) { obs.push({ x: 390, kind: Math.random() < 0.5 ? 'rock' : 'mushroom', hit: false, passed: false }); spawn = p.gap * (0.8 + Math.random() * 0.4); }
         obs.forEach(function (o) {
           o.x -= p.speed * dt;
-          var near = Math.abs(o.x - HERO_X) < 22;
+          var near = o.x - HERO_X < 22 && o.x - HERO_X > -8;   // (landing just behind a rock that was jumped over is fine)
           if (near && !o.hit && hero.y > -26) { o.hit = true; stats.hit++; hero.trip = 0.6; api.sfx('bump'); api.mark('batsu', HERO_X, GROUND - 40, 18); }
           if (!o.passed && o.x < HERO_X - 22) { o.passed = true; if (!o.hit) { stats.over++; api.burst(HERO_X, GROUND - 30, 5, '#fff6a8'); } }
         });
