@@ -246,6 +246,12 @@ Lang.add({
   'ジングルベル': ['Jingle Bells', 'Jingle Bells', '징글벨'],
   'ゆかいな まきば': ['Nông trại vui vẻ', 'Old MacDonald', '맥도널드 할아버지'],
   'こげ こげ ボート': ['Chèo thuyền', 'Row, Row, Row Your Boat', '노 젓기 노래'],
+  'がっこうの チャイム': ['Chuông trường học', 'School Chime', '학교 종소리'],
+  'ホット クロス バンズ': ['Hot Cross Buns', 'Hot Cross Buns', '핫 크로스 번'],
+  'せいじゃの こうしん': ['Các thánh diễu hành', 'When the Saints', '성자의 행진'],
+  'おお スザンナ': ['Ôi Susanna', 'Oh! Susanna', '오 수재너'],
+  'いえじ': ['Đường về nhà', 'Going Home', '꿈속의 고향'],
+  'こもりうた': ['Bài hát ru', 'Lullaby', '자장가'],
   'ドレミの かいだん': ['Cầu thang Đô Rê Mi', 'Up the Keys', '도레미 계단'],
 
   // ---------------------------------------------------------------- shop
@@ -327,7 +333,10 @@ var GUNGUN_LANG = {
     words: {
       dog: 'chó', cat: 'mèo', shoe: 'giày', star: 'sao', flower: 'hoa', crab: 'cua', peach: 'đào', apple: 'táo',
       strawberry: 'dâu', egg: 'trứng', frog: 'ếch', rabbit: 'thỏ', grapes: 'nho', mandarin: 'quýt', fish: 'cá',
-      hat: 'mũ', car: 'xe', balloon: 'bóng', pencil: 'bút', snail: 'ốc'
+      hat: 'mũ', car: 'xe', balloon: 'bóng', pencil: 'bút', snail: 'ốc',
+      bear: 'gấu', cow: 'bò', turtle: 'rùa', monkey: 'khỉ', elephant: 'voi', moon: 'trăng', cloud: 'mây',
+      house: 'nhà', boat: 'thuyền', mushroom: 'nấm', glasses: 'kính', banana: 'chuối', lemon: 'chanh', mouse: 'chuột',
+      drum: 'trống', book: 'sách', scissors: 'kéo', ghost: 'ma', owl: 'cú', corn: 'ngô'
     },
     len: { e: [2, 3], n: [3, 3], h: [3, 5], ae: [3, 4], a: [3, 5], ah: [3, 5], practice: [2, 2] }
   },
@@ -339,7 +348,13 @@ var GUNGUN_LANG = {
     words: {
       dog: 'DOG', cat: 'CAT', shoe: 'SHOE', star: 'STAR', flower: 'FLOWER', crab: 'CRAB', peach: 'PEACH', apple: 'APPLE',
       egg: 'EGG', chick: 'CHICK', frog: 'FROG', rabbit: 'RABBIT', grapes: 'GRAPES', mandarin: 'ORANGE', fish: 'FISH',
-      hat: 'HAT', car: 'CAR', balloon: 'BALLOON', mitten: 'MITTEN', pencil: 'PENCIL', snail: 'SNAIL', cherry: 'CHERRY'
+      hat: 'HAT', car: 'CAR', balloon: 'BALLOON', mitten: 'MITTEN', pencil: 'PENCIL', snail: 'SNAIL', cherry: 'CHERRY',
+      bear: 'BEAR', cow: 'COW', turtle: 'TURTLE', monkey: 'MONKEY', elephant: 'ELEPHANT', moon: 'MOON', cloud: 'CLOUD',
+      house: 'HOUSE', boat: 'BOAT', octopus: 'OCTOPUS', bread: 'BREAD', top: 'TOP', rainbow: 'RAINBOW', mushroom: 'MUSHROOM',
+      glasses: 'GLASSES', banana: 'BANANA', lemon: 'LEMON', tomato: 'TOMATO', mouse: 'MOUSE', panda: 'PANDA', giraffe: 'GIRAFFE',
+      drum: 'DRUM', book: 'BOOK', scissors: 'SCISSORS', ghost: 'GHOST', plane: 'PLANE', lion: 'LION', penguin: 'PENGUIN',
+      owl: 'OWL', acorn: 'ACORN', carrot: 'CARROT', crown: 'CROWN', snowman: 'SNOWMAN', beetle: 'BEETLE', corn: 'CORN',
+      ladybug: 'LADYBUG'
     },
     len: { e: [3, 4], n: [4, 5], h: [5, 6], ae: [4, 5], a: [5, 7], ah: [6, 6], practice: [3, 3] }
   },
@@ -352,7 +367,13 @@ var GUNGUN_LANG = {
       dog: '개', cat: '고양이', umbrella: '우산', shoe: '신발', star: '별', flower: '꽃', crab: '게', peach: '복숭아',
       apple: '사과', strawberry: '딸기', egg: '달걀', chick: '병아리', frog: '개구리', rabbit: '토끼', watermelon: '수박',
       grapes: '포도', mandarin: '귤', fish: '물고기', hat: '모자', car: '자동차', riceball: '주먹밥', balloon: '풍선',
-      sunflower: '해바라기', mitten: '장갑', pencil: '연필', snail: '달팽이', cherry: '체리'
+      sunflower: '해바라기', mitten: '장갑', pencil: '연필', snail: '달팽이', cherry: '체리',
+      bear: '곰', cow: '소', turtle: '거북이', monkey: '원숭이', elephant: '코끼리', moon: '달', cloud: '구름',
+      house: '집', boat: '배', octopus: '문어', bread: '빵', top: '팽이', rainbow: '무지개', mushroom: '버섯',
+      glasses: '안경', banana: '바나나', lemon: '레몬', tomato: '토마토', mouse: '생쥐', panda: '판다', giraffe: '기린',
+      drum: '북', book: '그림책', scissors: '가위', ghost: '유령', plane: '비행기', lion: '사자', penguin: '펭귄',
+      owl: '부엉이', acorn: '도토리', carrot: '당근', crown: '왕관', snowman: '눈사람', beetle: '장수풍뎅이', corn: '옥수수',
+      ladybug: '무당벌레'
     },
     len: { e: [2, 2], n: [3, 3], h: [3, 4], ae: [2, 3], a: [2, 4], ah: [3, 4], practice: [2, 2] }
   }

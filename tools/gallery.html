@@ -52,6 +52,17 @@ function draw(t) {
   Art.maru(g, 780, y0 + 300, 30); Art.batsu(g, 870, y0 + 300, 26);
   Art.card(g, 740, y0 + 360, 120, 110);
 }
+// ?pics=1: only the pictures (7 in a row), with their names
+if (q.get('pics') === '1') draw = function (t) {
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.fillStyle = '#fff8ee'; g.fillRect(0, 0, W, H);
+  Data.PICS.forEach(function (p, i) {
+    var x = 75 + (i % 7) * 140, y = 75 + Math.floor(i / 7) * 160;
+    g.fillStyle = i >= 27 ? '#fff' : '#f3ecdf'; g.fillRect(x - 64, y - 64, 128, 128);
+    Pics.draw(g, p.id, x, y, 120, t);
+    label((i + 1) + ' ' + p.name, x, y + 80);
+  });
+};
 // ?hands=1: only the janken hands, big
 if (q.get('hands') === '1') draw = function () {
   g.setTransform(1, 0, 0, 1, 0, 0);

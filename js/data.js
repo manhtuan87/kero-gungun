@@ -66,7 +66,17 @@
     { id: 'frog', name: 'かえる' }, { id: 'rabbit', name: 'うさぎ' }, { id: 'watermelon', name: 'すいか' }, { id: 'grapes', name: 'ぶどう' },
     { id: 'mandarin', name: 'みかん' }, { id: 'fish', name: 'さかな' }, { id: 'hat', name: 'ぼうし' }, { id: 'car', name: 'くるま' },
     { id: 'riceball', name: 'おにぎり' }, { id: 'balloon', name: 'ふうせん' }, { id: 'sunflower', name: 'ひまわり' }, { id: 'mitten', name: 'てぶくろ' },
-    { id: 'pencil', name: 'えんぴつ' }, { id: 'snail', name: 'かたつむり' }, { id: 'cherry', name: 'さくらんぼ' }
+    { id: 'pencil', name: 'えんぴつ' }, { id: 'snail', name: 'かたつむり' }, { id: 'cherry', name: 'さくらんぼ' },
+    // (added 2026-09-29, so that the questions repeat less)
+    { id: 'bear', name: 'くま' }, { id: 'cow', name: 'うし' }, { id: 'turtle', name: 'かめ' }, { id: 'monkey', name: 'さる' },
+    { id: 'elephant', name: 'ぞう' }, { id: 'moon', name: 'つき' }, { id: 'cloud', name: 'くも' }, { id: 'house', name: 'いえ' },
+    { id: 'boat', name: 'ふね' }, { id: 'octopus', name: 'たこ' }, { id: 'bread', name: 'ぱん' }, { id: 'top', name: 'こま' },
+    { id: 'rainbow', name: 'にじ' }, { id: 'mushroom', name: 'きのこ' }, { id: 'glasses', name: 'めがね' }, { id: 'banana', name: 'ばなな' },
+    { id: 'lemon', name: 'れもん' }, { id: 'tomato', name: 'とまと' }, { id: 'mouse', name: 'ねずみ' }, { id: 'panda', name: 'ぱんだ' },
+    { id: 'giraffe', name: 'きりん' }, { id: 'drum', name: 'たいこ' }, { id: 'book', name: 'えほん' }, { id: 'scissors', name: 'はさみ' },
+    { id: 'ghost', name: 'おばけ' }, { id: 'plane', name: 'ひこうき' }, { id: 'lion', name: 'らいおん' }, { id: 'penguin', name: 'ぺんぎん' },
+    { id: 'owl', name: 'ふくろう' }, { id: 'acorn', name: 'どんぐり' }, { id: 'carrot', name: 'にんじん' }, { id: 'crown', name: 'おうかん' },
+    { id: 'snowman', name: 'ゆきだるま' }, { id: 'beetle', name: 'かぶとむし' }, { id: 'corn', name: 'とうもろこし' }, { id: 'ladybug', name: 'てんとうむし' }
   ];
 
   // Letters for the dummy tiles of ことば つくり (plain hiragana, no small letters).
@@ -81,16 +91,30 @@
       notes: '0 1 2 3 2 1 0:2 2 3 4 5 4 3 2:2 0:2 0:2 0:2 0:2 0:.5 0:.5 1:.5 1:.5 2:.5 2:.5 3:.5 3:.5 2 1 0:2' },
     { id: 'mary', name: 'メリーさんの ひつじ', unlock: 0, bpm: 108,
       notes: '2 1 0 1 2 2 2:2 1 1 1:2 2 4 4:2 2 1 0 1 2 2 2 2 1 1 2 1 0:4' },
+    { id: 'chime', name: 'がっこうの チャイム', unlock: 2, bpm: 84,
+      notes: '5 3 4 0:2 0 4 5 3:2 5 3 4 0:2 0 4 5 3:3' },
+    { id: 'hotcross', name: 'ホット クロス バンズ', unlock: 4, bpm: 100,
+      notes: '2 1 0:2 2 1 0:2 0:.5 0:.5 0:.5 0:.5 1:.5 1:.5 1:.5 1:.5 2 1 0:2' },
+    { id: 'saints', name: 'せいじゃの こうしん', unlock: 6, bpm: 132,
+      notes: '0 2 3 4:4 0 2 3 4:4 0 2 3 4:2 2:2 0:2 2:2 1:4 2 2 1 0:3 0 2 4:2 4 3:4 2 3 4:2 2:2 0:2 1:2 0:4' },
+    { id: 'susanna', name: 'おお スザンナ', unlock: 8, bpm: 132,
+      notes: '0:.5 1:.5 2 4 4:1.5 5:.5 4 2 0:1.5 1:.5 2 2 1 0 1:3 0:.5 1:.5 2 4 4:1.5 5:.5 4 2 0:1.5 1:.5 2 2 1 1 0:3 ' +
+        '3:2 3 5 5:2 4 4 2 0 1:3 0:.5 1:.5 2 4 4:1.5 5:.5 4 2 0:1.5 1:.5 2 2 1 1 0:3' },
     { id: 'chou', name: 'ちょうちょう', unlock: 10, bpm: 108,
       notes: '4 2 2:2 3 1 1:2 0 1 2 3 4 4 4:2 4 2 2:2 3 1 1:2 0 2 4 4 2 2 2:2 1 1 1 1 1 2 3:2 2 2 2 2 2 3 4:2 4 2 2:2 3 1 1:2 0 2 4 4 0:3' },
     { id: 'joy', name: 'よろこびの うた', unlock: 12, bpm: 108,
       notes: '2 2 3 4 4 3 2 1 0 0 1 2 2:1.5 1:.5 1:2 2 2 3 4 4 3 2 1 0 0 1 2 1:1.5 0:.5 0:2' },
     { id: 'london', name: 'ロンドンばし', unlock: 14, bpm: 108,
       notes: '4:1.5 5:.5 4 3 2 3 4:2 1 2 3:2 2 3 4:2 4:1.5 5:.5 4 3 2 3 4:2 1:2 4:2 2 0:2' },
+    { id: 'ieji', name: 'いえじ', unlock: 15, bpm: 66,
+      notes: '2:1.5 4:.5 4:2 2:1.5 1:.5 0:2 1 2 4 2 1:4 2:1.5 4:.5 4:2 2:1.5 1:.5 0:2 1 2 1 0:4' },
     { id: 'jingle', name: 'ジングルベル', unlock: 16, bpm: 120,
       notes: '2 2 2:2 2 2 2:2 2 4 0:1.5 1:.5 2:4 3 3 3:1.5 3:.5 3 2 2 2:.5 2:.5 2 1 1 2 1:2 4:2' },
     { id: 'farm', name: 'ゆかいな まきば', unlock: 18, bpm: 112,
       notes: '4 4 4 1 2 2 1:2 6 6 5 5 4:3 1 4 4 4 1 2 2 1:2 6 6 5 5 4:3' },
+    { id: 'lullaby', name: 'こもりうた', unlock: 19, bpm: 88,
+      notes: '2:.5 2:.5 4:2 2:.5 2:.5 4:2 2:.5 4:.5 7 6:1.5 5:.5 5 4 1:.5 2:.5 3 1 1:.5 2:.5 3:2 1:.5 3:.5 6 5 4 6 7:2 ' +
+        '0:.5 0:.5 7:2 5:.5 3:.5 4:2 2:.5 0:.5 3 4 5 4:2 0:.5 0:.5 7:2 5:.5 3:.5 4:2 2:.5 0:.5 3 2 1 0:3' },
     { id: 'boat', name: 'こげ こげ ボート', unlock: 20, bpm: 96,
       notes: '0 0 0:.75 1:.25 2 2:.75 1:.25 2:.75 3:.25 4:2 7:.34 7:.33 7:.33 4:.34 4:.33 4:.33 2:.34 2:.33 2:.33 0:.34 0:.33 0:.33 4:.75 3:.25 2:.75 1:.25 0:2' }
   ];

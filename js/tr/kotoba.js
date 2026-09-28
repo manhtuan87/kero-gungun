@@ -112,7 +112,7 @@
       h: { q: 6, len: [4, 5], dummy: 2 },
       ae: { q: 6, len: [3, 4], dummy: 2 },
       a: { q: 8, len: [3, 5], dummy: 3 },
-      ah: { q: 7, len: [4, 6], dummy: 4 },   // (7 until there are more long words)
+      ah: { q: 8, len: [4, 6], dummy: 4 },
       practice: { q: 2, len: [2, 2], dummy: 0 }
     },
     ranks: {
