@@ -1,10 +1,12 @@
 /* ケロちゃん あたま ぐんぐん — offline support.
    Keeps the game on the device so it plays without a connection.
-   Bump VERSION whenever the game files change; the new files are fetched
-   in the background and used from the next launch.
+   Bump VERSION whenever the game files change. The page looks for a new version
+   whenever it is opened or comes back to the front; the new files are fetched
+   straight from the server (never from the browser's own cache), this worker takes
+   over at once, and the page reloads itself on the title screen.
    The site hosts other games and the menu, which share the cache storage,
    so only caches whose names start with "gun-" are ever deleted here. */
-var VERSION = 'gun-v3';
+var VERSION = 'gun-v4';
 var FONTS = 'gun-fonts';
 var FILES = [
   './', 'index.html', 'style.css', 'manifest.webmanifest',
@@ -23,12 +25,16 @@ try {
     .filter(function (f, i, all) { return all.indexOf(f) === i; });
 } catch (e) { /* no voice yet */ }
 
+// A file straight from the server, not from the browser's own cache (GitHub Pages lets browsers
+// keep files for 10 minutes, which could otherwise put old files into a new version).
+function fresh(f) { return new Request(f, { cache: 'reload' }); }
+
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(VERSION)
     .then(function (c) {
-      return c.addAll(FILES).then(function () {
+      return c.addAll(FILES.map(fresh)).then(function () {
         // one by one, so a missing clip never stops the game from being stored
-        return Promise.all(VOICE_FILES.map(function (f) { return c.add(f).catch(function () {}); }));
+        return Promise.all(VOICE_FILES.map(function (f) { return c.add(fresh(f)).catch(function () {}); }));
       });
     })
     .then(function () { return self.skipWaiting(); }));
@@ -50,7 +56,8 @@ self.addEventListener('fetch', function (e) {
   if (url.origin === self.location.origin) {
     e.respondWith(caches.open(VERSION).then(function (c) {
       return c.match(req, { ignoreSearch: true }).then(function (hit) {
-        var net = fetch(req).then(function (res) {
+        if (hit && url.pathname.indexOf('/voice/') >= 0) return hit;   // clips never change (a changed line gets a new file)
+        var net = fetch(req.url, { cache: 'no-cache' }).then(function (res) {
           if (res.ok) c.put(req, res.clone());
           return res;
         }).catch(function () { return hit; });
