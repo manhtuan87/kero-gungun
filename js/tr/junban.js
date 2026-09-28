@@ -5,8 +5,9 @@
   'use strict';
   var U = T.U, G = typeof window !== 'undefined' ? window : {};
   var KANA = 'あいうえおかきくけこ';
-  var BOX = { x0: 46, y0: 138, x1: 314, y1: 548 };
-  var START = { x: 180, y: 604 };
+  var POND_Y = 116;                                   // the pond starts below the row that shows the whole order
+  var BOX = { x0: 46, y0: 150, x1: 314, y1: 552 };
+  var START = { x: 180, y: 606 };
 
   function labels(p) {
     var out = [];
@@ -47,6 +48,22 @@
       hero.mode = 'happy'; hero.mt = 0;
       api.sfx('hop');
     }
+    // The whole order at the top (two rows when it is long): the done ones turn green, the next one glows.
+    function drawOrder(c, clock) {
+      var n = pads.length;
+      if (!n) return;
+      var perRow = n > 12 ? Math.ceil(n / 2) : n, rows = Math.ceil(n / perRow);
+      var step = Math.min(28, 328 / perRow), r = Math.min(12, step * 0.43);
+      for (var i = 0; i < n; i++) {
+        var row = Math.floor(i / perRow), col = i % perRow, inRow = Math.min(perRow, n - row * perRow);
+        var x = 180 + (col - (inRow - 1) / 2) * step, y = (rows > 1 ? 75 : 88) + row * 26;
+        var done = i < nextI, next = i === nextI && phase === 'play', lab = pads[i].label;
+        var rr = next ? r * (1.18 + 0.06 * Math.sin(clock * 6)) : r;
+        if (next) { D.circle(c, x, y, rr + 4); D.paint(c, 'rgba(255,240,106,.85)'); }
+        D.circle(c, x, y, rr); D.paint(c, done ? '#9fdc7c' : next ? '#fff06a' : '#fffdf5', D.INK, 2.2);
+        A.text(c, lab, x, y + 1, lab.length > 1 ? rr * 0.95 : rr * 1.2, done ? 'rgba(90,56,37,.45)' : D.INK, { stroke: false });
+      }
+    }
 
     return {
       theme: 0,
@@ -65,15 +82,15 @@
       },
       draw: function (c, clock) {
         // the pond
-        D.roundRect(c, 14, 104, 332, 528, 40); D.paint(c, '#9edcff', '#6bb8e6', 4);
-        c.save(); D.roundRect(c, 14, 104, 332, 528, 40); c.clip();
+        D.roundRect(c, 14, POND_Y, 332, 632 - POND_Y, 40); D.paint(c, '#9edcff', '#6bb8e6', 4);
+        c.save(); D.roundRect(c, 14, POND_Y, 332, 632 - POND_Y, 40); c.clip();
         c.strokeStyle = 'rgba(255,255,255,.5)'; c.lineWidth = 3; c.lineCap = 'round';
         for (var w = 0; w < 7; w++) {
-          var wy = 150 + w * 70, wx = 40 + ((w * 97) % 220);
+          var wy = 160 + w * 68, wx = 40 + ((w * 97) % 220);
           c.beginPath(); c.arc(wx + Math.sin(clock + w) * 6, wy, 16, Math.PI * 1.15, Math.PI * 1.85); c.stroke();
         }
         c.restore();
-        A.text(c, p.seq === 'alt' ? '1 → あ → 2 → い の じゅんばん！' : '1 から じゅんばんに タッチ！', 180, 82, 20, '#fff', { lw: 6 });
+        drawOrder(c, clock);
         // the path already hopped
         var done = pads.filter(function (q) { return q.done; });
         if (done.length) {

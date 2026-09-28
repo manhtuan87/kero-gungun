@@ -56,7 +56,7 @@
     var HX = 180, HY = 238;
 
     var ch = api.choices([0, 1, 2].map(function (h) {
-      return { draw: function (c, w, hh) { A.jankenHand(c, h, w / 2, hh / 2 - 6, Math.min(w, hh) / 118); A.text(c, HANDS[h], w / 2, hh - 14, 17, D.INK, { stroke: false }); } };
+      return { draw: function (c, w, hh) { A.jankenHand(c, h, w / 2, hh / 2 - 13, Math.min(w, hh) / 134); A.text(c, HANDS[h], w / 2, hh - 12, 17, D.INK, { stroke: false }); } };
     }), tap, { top: 478, h: 130, gap: 10 });
 
     function next() {
@@ -138,7 +138,7 @@
         D.circle(c, HX, HY, 84); D.paint(c, '#fffdf5', D.INK, 4);
         c.save(); c.beginPath(); c.moveTo(HX - 14, HY + 80); c.lineTo(HX, HY + 104); c.lineTo(HX + 14, HY + 80); c.closePath(); D.paint(c, '#fffdf5', D.INK, 4); c.restore();
         D.circle(c, HX, HY, 80); D.paint(c, '#fffdf5');
-        A.jankenHand(c, cur.hand, HX, HY + 4, 1.3 * s, '#9ee07a');
+        A.jankenHand(c, cur.hand, HX, HY - 4, 1.2 * s, '#9ee07a');
       },
       peek: function () { return phase === 'show' && active ? cur.ans : null; },   // for playtesting
       end: function () {}

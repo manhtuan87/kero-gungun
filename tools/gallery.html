@@ -52,6 +52,16 @@ function draw(t) {
   Art.maru(g, 780, y0 + 300, 30); Art.batsu(g, 870, y0 + 300, 26);
   Art.card(g, 740, y0 + 360, 120, 110);
 }
+// ?hands=1: only the janken hands, big
+if (q.get('hands') === '1') draw = function () {
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.fillStyle = '#fff8ee'; g.fillRect(0, 0, W, H);
+  [0, 1, 2].forEach(function (k) {
+    Art.jankenHand(g, k, 170 + k * 330, 200, 2.2);
+    Art.jankenHand(g, k, 170 + k * 330, 520, 2.2, '#9ee07a');
+    Art.jankenHand(g, k, 120 + k * 120, 760, 0.66);
+  });
+};
 function loop(now) { draw(anim ? now / 1000 : T); if (anim) requestAnimationFrame(loop); }
 document.fonts.ready.then(function () { requestAnimationFrame(loop); document.title = 'ready'; });
 </script></body></html>

@@ -33,7 +33,11 @@
   function songOf(id) { for (var i = 0; i < DATA.SONGS.length; i++) if (DATA.SONGS[i].id === id) return DATA.SONGS[i]; return null; }
   function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (ch) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]; }); }
-  function initial(u) { return u.name ? u.name.charAt(0) : '★'; }
+  // The nickname set in ケロちゃん ランド (shared by every game on the site) stands in for the first user's name
+  // when that user has none of its own.
+  function landName() { try { return (localStorage.getItem('kero-name') || '').trim().slice(0, C.NAME_MAX); } catch (e) { return ''; } }
+  function nameOf(u) { return u.name || (u === save.users[0] ? landName() : ''); }
+  function initial(u) { var n = nameOf(u); return n ? n.charAt(0) : '★'; }
   function vibrate(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) { /* ignore */ } }
   function easeOut(k) { return 1 - Math.pow(1 - k, 3); }
 
@@ -243,8 +247,9 @@
     $('check-done').hidden = !done;
     $('btn-check').classList.toggle('glow', !done);
     var chip = $('btn-user'), u = me();
-    chip.hidden = save.users.length < 2;
-    chip.innerHTML = '<i style="background:' + C.COLORS[u.color] + '"></i>' + esc(u.name || 'なまえなし');
+    chip.hidden = save.users.length < 2 && !nameOf(u);
+    chip.classList.toggle('single', save.users.length < 2);
+    chip.innerHTML = '<i style="background:' + C.COLORS[u.color] + '"></i>' + esc(nameOf(u) || 'なまえなし');
     $('shop-badge').innerHTML = icon('star') + C.wallet(ud());
     refreshToggles();
   }
@@ -255,7 +260,7 @@
     var hello = hr >= 4 && hr < 10 ? DATA.LINES.morning : hr < 17 ? DATA.LINES.day : DATA.LINES.night;
     var text;
     if (!save.intro) { text = DATA.LINES.first; save.intro = true; store(); }
-    else text = (u.name ? u.name + '、' : '') + hello + '\n' + (C.checkedToday(save) ? pick(DATA.LINES.title) : DATA.LINES.checkFirst);
+    else text = (nameOf(u) ? nameOf(u) + '、' : '') + hello + '\n' + (C.checkedToday(save) ? pick(DATA.LINES.title) : DATA.LINES.checkFirst);
     setTimeout(function () {
       if (screen !== 'title') return;
       var p = hakasePos();
@@ -311,7 +316,7 @@
       var b = document.createElement('button');
       b.className = 'btn who-btn';
       b.innerHTML = '<span class="udot" style="background:' + C.COLORS[u.color] + '">' + esc(initial(u)) + '</span>' +
-        '<span>' + esc(u.name || 'なまえなし') + '</span><small>' + (u.type === 'adult' ? 'おとな' : 'こども') + '</small>';
+        '<span>' + esc(nameOf(u) || 'なまえなし') + '</span><small>' + (u.type === 'adult' ? 'おとな' : 'こども') + '</small>';
       b.addEventListener('click', function () {
         S.play('click'); save.cur = u.id; store();
         if (history.state && history.state.gungun) backTo('title'); else go('title');
@@ -724,7 +729,8 @@
       el.textContent = name + '！';
       el.classList.toggle('long', name.length > 4);
       S.play('fanfare');
-      var line = R.out.newBest ? pick(DATA.LINES.best) : R.out.firstPlay ? pick(DATA.LINES.first1) : R.rank >= 4 ? pick(DATA.LINES.good) : pick(DATA.LINES.soso);
+      var who = nameOf(me());
+      var line = (who ? who + '、' : '') + (R.out.newBest ? pick(DATA.LINES.best) : R.out.firstPlay ? pick(DATA.LINES.first1) : R.rank >= 4 ? pick(DATA.LINES.good) : pick(DATA.LINES.soso));
       $('r-badge').textContent = R.out.newBest ? 'じこベスト！' : '';
       $('r-say').textContent = 'ケロはかせ「' + line + '」';
       speak(name + '！ ' + line);
@@ -964,7 +970,8 @@
       var best = 0;
       check.ranks.forEach(function (r, i) { if (r > check.ranks[best]) best = i; });
       var allSame = check.ranks.every(function (r) { return r === check.ranks[0]; });
-      var line = allSame ? (check.ranks[0] >= 5 ? 'ぜんぶ すごいね！' : 'まいにち やると ぐんぐん のびるよ') : DATA.CHECK[best].good;
+      var who = nameOf(me());
+      var line = (who ? who + '、' : '') + (allSame ? (check.ranks[0] >= 5 ? 'ぜんぶ すごいね！' : 'まいにち やると ぐんぐん のびるよ') : DATA.CHECK[best].good);
       if (!check.out.recorded) line += '\n（れんしゅう なので きろくは しないよ）';
       $('ck-say').textContent = 'ケロはかせ「' + line + '」';
       S.play('fanfare');
@@ -1246,7 +1253,7 @@
   function openAdmin() {
     var u = me(), d = ud();
     resetArmed = false;
-    $('p-info').innerHTML = 'いまの ユーザー：' + esc(u.name || 'なまえなし') + '（' + (u.type === 'adult' ? 'おとな' : 'こども') + '）<br>' +
+    $('p-info').innerHTML = 'いまの ユーザー：' + esc(nameOf(u) || 'なまえなし') + '（' + (u.type === 'adult' ? 'おとな' : 'こども') + '）<br>' +
       'スタンプ ' + C.stampCount(d) + '　あつめた★ ' + C.starsEarned(d) + '　つかった★ ' + d.spent;
     $('p-all').textContent = '全トレーニング解放：' + (save.all ? 'オン' : 'オフ');
     $('p-all').classList.toggle('active', !!save.all);
@@ -1266,7 +1273,7 @@
       var row = document.createElement('div');
       row.className = 'urow' + (u.id === save.cur ? ' cur' : '');
       row.innerHTML = '<span class="udot" style="background:' + C.COLORS[u.color] + '">' + esc(initial(u)) + '</span>' +
-        '<span class="uname">' + esc(u.name || 'なまえなし') + '</span><span class="utype">' + (u.type === 'adult' ? 'おとな' : 'こども') + '</span>';
+        '<span class="uname">' + esc(nameOf(u) || 'なまえなし') + '</span><span class="utype">' + (u.type === 'adult' ? 'おとな' : 'こども') + '</span>';
       var b = document.createElement('button');
       b.className = 'btn'; b.textContent = 'へんしゅう';
       b.addEventListener('click', function () { S.play('click'); openEdit(u); });
@@ -1417,7 +1424,7 @@
     $('btn-records').addEventListener('click', function () { S.play('click'); forward(function () { go('records'); }); });
     $('btn-shop').addEventListener('click', function () { S.play('click'); forward(function () { go('shop'); }); });
     $('btn-vs').addEventListener('click', function () { S.play('click'); forward(function () { go('vs'); }); });
-    $('btn-user').addEventListener('click', function () { S.play('click'); forward(function () { go('who'); }); });
+    $('btn-user').addEventListener('click', function () { if (save.users.length < 2) return; S.play('click'); forward(function () { go('who'); }); });
     $('btn-sfx').addEventListener('click', function () { save.sfx = !save.sfx; S.set('sfx', save.sfx); store(); refreshToggles(); S.play('click'); });
     $('btn-music').addEventListener('click', function () {
       save.music = !save.music; S.set('music', save.music); store(); refreshToggles();

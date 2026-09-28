@@ -87,7 +87,7 @@ run('junban', (tr, p, lv, r) => {
     check(b.length === p.n, `junban ${lv} pads`);
     check(new Set(b.map(q => q.label)).size === p.n, `junban ${lv} labels repeat`);
     b.forEach((a, i) => b.forEach((c, j) => { if (i < j) check(dist(a, c) >= 60, `junban ${lv} pads overlap (${Math.round(dist(a, c))})`); }));
-    b.forEach(a => check(a.x >= 40 && a.x <= 320 && a.y >= 130 && a.y <= 556, `junban ${lv} pad outside the pond`));
+    b.forEach(a => check(a.x >= 40 && a.x <= 320 && a.y >= 146 && a.y <= 556, `junban ${lv} pad outside the pond`));
     check(Math.hypot(b[0].x - 180, b[0].y - 604) > 0, 'junban start');
   });
   if (p.seq === 'alt') check(tr.labels(p).slice(0, 4).join('') === '1あ2い', 'junban alternating labels');

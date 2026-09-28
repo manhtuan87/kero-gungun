@@ -94,7 +94,7 @@ var Versus = (function () {
         var b = document.createElement('button');
         b.className = 'cho';
         var cv = host.makeCanvas(96, 96), g = cv.getContext('2d');
-        g.scale(2, 2); A.jankenHand(g, h, 48, 44, 0.66); A.text(g, ['グー', 'チョキ', 'パー'][h], 48, 86, 13, D.INK, { stroke: false });
+        g.scale(2, 2); A.jankenHand(g, h, 48, 38, 0.6); A.text(g, ['グー', 'チョキ', 'パー'][h], 48, 88, 13, D.INK, { stroke: false });
         b.appendChild(cv);
         b.addEventListener('pointerdown', function (e) { e.preventDefault(); host.press(b); answer(id, h, b); });
         box.appendChild(b);
@@ -245,7 +245,7 @@ var Versus = (function () {
         }
       } else {
         D.circle(c, 104, 90, 62); D.paint(c, '#fffdf5', D.INK, 3.5);
-        A.jankenHand(c, q.hand, 104, 94, 0.95, '#9ee07a');
+        A.jankenHand(c, q.hand, 104, 88, 0.86, '#9ee07a');
         c.save(); c.translate(258, 90);
         D.roundRect(c, -72, -28, 144, 56, 28); D.paint(c, ASK_COLOR[q.ask], D.INK, 3.5);
         A.text(c, ASK_TEXT[q.ask], 0, 2, 30, '#fff', { lw: 7 });

@@ -5,7 +5,15 @@
   'use strict';
   var U = T.U, G = typeof window !== 'undefined' ? window : {};
   var DATA = typeof Data !== 'undefined' ? Data : require('../data.js');
-  var KEY_COLORS = ['#ff7a7a', '#ffa552', '#ffd23d', '#8bd86a', '#5fd0c9', '#66a8ff', '#b48cff', '#ff8fc0'];
+  // one clear colour per key (neighbours never look alike); the note circles above use the same colours
+  //                 ど(red)   れ(orange) み(yellow) ふぁ(green) そ(sky)   ら(blue)   し(purple) ど(pink, the high one)
+  var KEY_COLORS = ['#f04a4a', '#ff9124', '#ffd21f', '#45c24c', '#25b5ec', '#2f5fd9', '#9a52e0', '#ff5eb4'];
+
+  // A note name; the high ど gets a dot on top (as in numbered music notation) so the two ど differ.
+  function noteName(c, A, D, k, x, y, size, colored) {
+    A.text(c, DATA.KEYS[k], x, y, size, colored ? '#fff' : D.INK, colored ? { lw: size * 0.28 } : { stroke: false });
+    if (k === 7) { D.circle(c, x, y - size * 0.82, size * 0.16); D.paint(c, colored ? '#fff' : D.INK, colored ? D.INK : null, 2); }
+  }
   var KEY_Y = 420, KEY_H = 206, KEY_W = 45;
 
   function parse(notes) {
@@ -92,7 +100,7 @@
           var n = notes[j], x = X0 + (j - scroll) * STEP, y = noteY(n.k), past = j < i;
           c.save(); c.globalAlpha = past ? 0.35 : 1;
           D.circle(c, x, y, 21); D.paint(c, p.colors ? KEY_COLORS[n.k] : '#fff', D.INK, 3);
-          A.text(c, DATA.KEYS[n.k], x, y + 1, n.k === 3 ? 13 : 17, p.colors ? '#fff' : D.INK, p.colors ? { lw: 4 } : { stroke: false });
+          noteName(c, A, D, n.k, x, y + 2, n.k === 3 ? 14 : 18, p.colors);
           if (n.len >= 2) { c.beginPath(); c.moveTo(x + 22, y); c.lineTo(x + 22 + (n.len - 1) * 16, y); D.paint(c, null, p.colors ? KEY_COLORS[n.k] : D.INK, 5); }
           c.restore();
         }
@@ -117,7 +125,7 @@
             c.restore();
             D.hand(c, kx + KEY_W / 2 + 4, KEY_Y + 110 + Math.sin(clock * 8) * 4, 0.8, false);
           }
-          A.text(c, DATA.KEYS[k], kx + KEY_W / 2 + sx, KEY_Y + KEY_H - 26 + (down ? 4 : 0), k === 3 ? 15 : 19, p.colors ? '#fff' : D.INK, p.colors ? { lw: 5 } : { stroke: false });
+          noteName(c, A, D, k, kx + KEY_W / 2 + sx, KEY_Y + KEY_H - 24 + (down ? 4 : 0), k === 3 ? 16 : 21, p.colors);
         }
         c.save(); c.translate(318, 386); c.scale(0.42, 0.42);
         D.critter(c, { x: 0, y: 0, t: clock, kind: 'frog', look: { x: -300, y: 0 }, mode: hak.mode, mt: hak.mt, wear: A.hakase, noSeat: true });

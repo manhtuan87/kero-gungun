@@ -239,32 +239,78 @@ var Art = (function () {
     ctx.restore();
   }
 
-  // ---------------------------------------------------------------- janken hands (0 グー, 1 チョキ, 2 パー), fingers up
+  // ---------------------------------------------------------------- janken hands (0 グー, 1 チョキ, 2 パー)
+  // Drawn like the hand emoji ✊ ✌ ✋: the palm towards us, fingers up, the wrist at the bottom
+  // (about 110 units tall, centred on the palm).
 
   var SKIN = '#ffd8b5';
+  // A finger growing from its base (bx, by) at angle a (0 = straight up).
+  function finger(ctx, bx, by, a, len, w) {
+    ctx.save(); ctx.translate(bx, by); ctx.rotate(a);
+    roundRect(ctx, -w / 2, -len, w, len + w / 2, w / 2);
+    ctx.restore();
+  }
+  function nail(ctx, bx, by, a, len, w) {
+    ctx.save(); ctx.translate(bx, by); ctx.rotate(a);
+    ellipse(ctx, 0, -len + w * 0.6, w * 0.26, w * 0.34); paint(ctx, 'rgba(255,255,255,.6)');
+    ctx.restore();
+  }
+  // Shapes that make one outline: all outlines first, then all fills.
+  function oneShape(ctx, shapes, fill) {
+    shapes.forEach(function (f) { f(); paint(ctx, null, INK, 6); });
+    shapes.forEach(function (f) { f(); paint(ctx, fill); });
+  }
+  // A thumb lying across the hand, from (x, y) to the right, tilted by a.
+  function thumbAcross(ctx, x, y, a, len, c) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(a);
+    roundRect(ctx, 0, -8.5, len, 17, 8.5); paint(ctx, c, INK, 2.8);
+    ellipse(ctx, len - 8, -2, 3.2, 4, 1.57); paint(ctx, 'rgba(255,255,255,.55)');
+    ctx.restore();
+  }
+  var CREASE = 'rgba(90,56,37,.45)';
+
+  function handPaper(ctx, c) {
+    var F = [[-18, 0, -0.22, 40, 13], [-5, -3, -0.05, 47, 13.5], [9, -2, 0.12, 43, 13], [21, 4, 0.33, 33, 11.5]];
+    var parts = F.map(function (f) { return function () { finger(ctx, f[0], f[1], f[2], f[3], f[4]); }; });
+    parts.push(function () { finger(ctx, -21, 26, -1.02, 31, 14); });   // thumb
+    parts.push(function () { roundRect(ctx, -26, -8, 52, 52, 19); });      // palm
+    parts.push(function () { roundRect(ctx, -15, 36, 30, 22, 6); });       // wrist
+    oneShape(ctx, parts, c);
+    F.forEach(function (f) { nail(ctx, f[0], f[1], f[2], f[3], f[4]); });
+    nail(ctx, -21, 26, -1.02, 31, 14);
+    stroke(ctx, [-10, 38, -15, 24, -9, 12], 2.2, CREASE);   // the crease at the thumb
+    stroke(ctx, [2, 14, 16, 12], 2, CREASE);
+  }
+  function handRock(ctx, c) {
+    oneShape(ctx, [function () { roundRect(ctx, -30, -16, 60, 56, 20); }, function () { roundRect(ctx, -16, 30, 32, 28, 7); }], c);
+    // the four bent fingers, knuckles towards us
+    [[-21, -24], [-7, -29], [7, -29], [21, -25]].forEach(function (f) {
+      roundRect(ctx, f[0] - 7.5, f[1], 15, 36, 7.5); paint(ctx, c, INK, 2.8);
+      stroke(ctx, [f[0] - 3.5, f[1] + 12, f[0] + 3.5, f[1] + 12], 1.8, CREASE);
+    });
+    thumbAcross(ctx, -33, 14, -0.14, 44, c);
+  }
+  function handScissors(ctx, c) {
+    var parts = [
+      function () { finger(ctx, -11, 4, -0.26, 48, 13.5); },   // index
+      function () { finger(ctx, 5, 4, 0.18, 50, 13.5); },      // middle
+      function () { roundRect(ctx, -26, -6, 52, 50, 19); },     // palm
+      function () { roundRect(ctx, -15, 36, 30, 22, 6); }       // wrist
+    ];
+    oneShape(ctx, parts, c);
+    nail(ctx, -11, 4, -0.26, 48, 13.5); nail(ctx, 5, 4, 0.18, 50, 13.5);
+    // the ring and little fingers folded into the palm, held down by the thumb
+    [[14, 6, 12.5], [24, 10, 11.5]].forEach(function (f) { roundRect(ctx, f[0] - f[2] / 2, f[1], f[2], 24, f[2] / 2); paint(ctx, c, INK, 2.8); });
+    thumbAcross(ctx, -30, 26, -0.26, 48, c);
+  }
+
   function jankenHand(ctx, kind, x, y, s, color) {
     var c = color || SKIN;
     ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
     ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-    if (kind === 0) {
-      blob(ctx, [['r', 0, 2, 64, 54, 24], ['r', -19, -24, 17, 18, 8], ['r', -3, -26, 17, 18, 8], ['r', 13, -25, 17, 18, 8], ['r', 26, -19, 15, 16, 7]], c);
-      stroke(ctx, [-11, -18, -11, -10], 2, 'rgba(90,56,37,.45)');
-      stroke(ctx, [5, -19, 5, -11], 2, 'rgba(90,56,37,.45)');
-      stroke(ctx, [20, -16, 20, -9], 2, 'rgba(90,56,37,.45)');
-      roundRect(ctx, -30, 4, 40, 15, 7.5); paint(ctx, c, INK, 2.6);
-    } else if (kind === 1) {
-      blob(ctx, [['r', -10, -34, 16, 50, 8, -0.22], ['r', 10, -34, 16, 50, 8, 0.22], ['r', 0, 8, 60, 50, 22], ['r', 23, -8, 15, 16, 7]], c);
-      stroke(ctx, [14, -10, 14, -2], 2, 'rgba(90,56,37,.45)');
-      roundRect(ctx, -28, 10, 38, 14, 7); paint(ctx, c, INK, 2.6);
-      ellipse(ctx, -14, -52, 3.5, 5, -0.22); paint(ctx, 'rgba(255,255,255,.55)');
-      ellipse(ctx, 14, -52, 3.5, 5, 0.22); paint(ctx, 'rgba(255,255,255,.55)');
-    } else {
-      var fingers = [[-22, -30, -0.42, 40], [-8, -38, -0.14, 46], [8, -38, 0.14, 46], [22, -31, 0.42, 40]].map(function (f) {
-        return ['r', f[0], f[1], 15, f[3], 7.5, f[2]];
-      });
-      blob(ctx, fingers.concat([['r', -32, 4, 15, 38, 7.5, -1.0], ['r', 0, 12, 58, 44, 20]]), c);
-      [[-8, -56], [8, -56], [-24, -48], [24, -48]].forEach(function (p) { ellipse(ctx, p[0], p[1], 3, 4.5); paint(ctx, 'rgba(255,255,255,.55)'); });
-    }
+    if (kind === 0) handRock(ctx, c);
+    else if (kind === 1) handScissors(ctx, c);
+    else handPaper(ctx, c);
     ctx.restore();
   }
 
