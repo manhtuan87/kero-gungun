@@ -456,8 +456,7 @@
     $('intro-help').textContent = tr.help;
     buildLevels();
     buildSongs();
-    var first = !ud().seen[tr.id];
-    $('intro-start-label').textContent = L(first ? 'れんしゅう' : 'はじめる');
+    $('intro-start-label').textContent = L('はじめる');
     show('intro');
     setTimeout(function () { if (screen === 'intro' && intro.tr === tr) speak(tr.help); }, 300);
   }
@@ -479,6 +478,7 @@
     var cur = rec[intro.level];
     $('intro-note').textContent = !ud().seen[intro.tr.id] ? DATA.LINES.practice :
       cur ? L('いちばん：{best}', { best: animalName(cur.rank) + paren(resText(cur.bt)) }) : '';
+    $('intro-note').classList.toggle('best', !!(cur && ud().seen[intro.tr.id]));
   }
 
   function buildSongs() {
@@ -871,8 +871,8 @@
       S.play('unlock'); speak([DATA.LINES.newSong, g.name]);
     } else if (ov.kind === 'practice') {
       title = L('じょうず！');
-      text = L('つぎは ほんばん だよ！');
-      ok = L('ほんばん');
+      text = L('こんどは ほんとうに やってみよう！');   // (the button starts the real run)
+      ok = L('はじめる');
       S.play('win'); speak(DATA.LINES.practiceDone);
     }
     $('ov-title').textContent = title;
@@ -973,22 +973,23 @@
       card.innerHTML = '<div class="ck-title">' + L('きょうの あたまチェック') + '</div>' +
         '<p class="ck-text">' + L(check.recorded ? '3つの テストで\nきょうの あたまを しらべるよ！' : 'きょうは もう チェック したよ。\nれんしゅうで やってみよう！') + '</p>' +
         '<div class="ck-tests">' + testRows() + '</div>' +
-        '<div class="ck-row"><button id="ck-go" class="btn big"><span data-icon="next"></span>' + L('はじめる') + '</button></div>';
+        '<div class="ck-row"><button id="ck-practice" class="btn practice-btn">' + L('れんしゅう') + '</button><button id="ck-go" class="btn big"><span data-icon="next"></span>' + L('はじめる') + '</button></div>';
     } else {
       var next = trOf(check.tests[check.i]);
       card.innerHTML = '<div class="ck-title">' + L('よく できました！') + '</div>' +
         '<p class="ck-text">' + L('つぎは「{name}」だよ', { name: esc(next.name) }) + '</p>' +
         '<div class="ck-tests">' + testRows() + '</div>' +
-        '<div class="ck-row"><button id="ck-go" class="btn big"><span data-icon="next"></span>' + L('つぎへ') + '</button></div>';
+        '<div class="ck-row"><button id="ck-practice" class="btn practice-btn">' + L('れんしゅう') + '</button><button id="ck-go" class="btn big"><span data-icon="next"></span>' + L('つぎへ') + '</button></div>';
     }
     fillTestIcons(card);
     setIcons(card);
     $('ck-go').addEventListener('click', function () { S.play('click'); checkStartTest(); });
+    $('ck-practice').addEventListener('click', function () { S.play('click'); checkStartTest(true); });   // (the next test, with hints)
   }
 
-  function checkStartTest() {
+  function checkStartTest(practice) {
     var tr = trOf(check.tests[check.i]), level = isAdult() ? 'testA' : 'test';
-    startRun(tr, level, { check: check, practice: !ud().seen[tr.id] });
+    startRun(tr, level, { check: check, practice: !!practice });
   }
 
   function checkNext(r, res) {
@@ -1521,7 +1522,14 @@
       var tr = intro.tr;
       S.play('click');
       ud().lv[tr.id] = intro.level; store();
-      forward(function () { startRun(tr, intro.level, { practice: !ud().seen[tr.id], song: tr.songs ? intro.song : null }); });
+      forward(function () { startRun(tr, intro.level, { song: tr.songs ? intro.song : null }); });
+    });
+    // practice (with hints, not recorded) can be tried any time; it is never forced
+    $('intro-practice').addEventListener('click', function () {
+      var tr = intro.tr;
+      S.play('click');
+      ud().lv[tr.id] = intro.level; store();
+      forward(function () { startRun(tr, intro.level, { practice: true, song: tr.songs ? intro.song : null }); });
     });
     $('p-quit').addEventListener('click', function () { S.play('click'); pauseRun(); });
     $('pause-go').addEventListener('click', function () { S.play('click'); resumeRun(); });

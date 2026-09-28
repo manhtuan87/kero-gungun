@@ -6,7 +6,7 @@
    over at once, and the page reloads itself on the title screen.
    The site hosts other games and the menu, which share the cache storage,
    so only caches whose names start with "gun-" are ever deleted here. */
-var VERSION = 'gun-v12';
+var VERSION = 'gun-v13';
 var FONTS = 'gun-fonts';
 var FILES = [
   './', 'index.html', 'style.css', 'manifest.webmanifest',
