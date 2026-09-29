@@ -100,6 +100,7 @@
     if (!s || typeof s !== 'object' || s.v !== 1) return out;
     out.sfx = s.sfx !== false; out.music = s.music !== false; out.voice = s.voice !== false;
     out.all = !!s.all; out.intro = !!s.intro;
+    out.shared = !!s.shared;   // (the players come from the shared list, js/accounts.js)
     out.stopAfter = [0, 3, 5].indexOf(s.stopAfter) >= 0 ? s.stopAfter : 3;
     out.handicap = clampInt(s.handicap, 0, 3);
     var users = [], data = {};
