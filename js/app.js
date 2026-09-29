@@ -196,10 +196,16 @@
     el.style.setProperty('--tail', Math.max(24, Math.min(w - 24, x - left)) + 'px');
     el.classList.add('on');
     clearTimeout(tipTimer);
-    if (o.dur !== 0) tipTimer = setTimeout(hideBubble, o.dur || 6500);
+    if (o.dur !== 0) tipTimer = setTimeout(hideWhenSaid, o.dur || 6500);
   }
   function hideBubble() { clearTimeout(tipTimer); $('tip').classList.remove('on'); }
+  // (a bubble stays while its line is still being said)
+  function hideWhenSaid() { if (V.busy()) tipTimer = setTimeout(hideWhenSaid, 400); else hideBubble(); }
   function speak(text) { if (save.voice) V.say(text); }   // (text in the chosen language: L())
+  // Seconds since ケロはかせ stopped talking (0 while he talks). What moves on by itself (the cards after a result
+  // or the check) waits for this, so a line is never cut off by the next one.
+  var hush = 0;
+  function quietFor(sec) { return hush >= sec; }
 
   // ---------------------------------------------------------------- small pictures for the lists
 
@@ -809,7 +815,8 @@
         (function (k) { setTimeout(function () { if (result === R) { got[k].classList.add('got'); S.play('star', k); } }, 350 + k * 260); }(i));
       }
     }
-    if (R.shown && !R.overlays && R.t >= 2.9) { R.overlays = true; queueGains(R.out, true); }
+    // the stamp and other cards come once ケロはかせ has finished what he says (at most ~10 s)
+    if (R.shown && !R.overlays && R.t >= 2.9 && (quietFor(0.4) || R.t >= 12)) { R.overlays = true; queueGains(R.out, true); }
   }
 
   function drawResult(c) {
@@ -1051,7 +1058,7 @@
       var what = check.out.age != null ? L('のうねんれいは {age}さい！', { age: check.out.age }) : L('きょうの あたまは {animal}！', { animal: animalName(check.out.rank) });
       speak([what, core]);
     }
-    if (check.shown && !check.overlays && check.t >= 2.9) { check.overlays = true; queueGains(check.out, false); }
+    if (check.shown && !check.overlays && check.t >= 2.9 && (quietFor(0.4) || check.t >= 12)) { check.overlays = true; queueGains(check.out, false); }
   }
 
   function drawCheck(c) {
@@ -1605,6 +1612,7 @@
   }
   function step(dt) {
     clock += dt;
+    hush = V.busy() ? 0 : hush + dt;
     updateFx(dt);
     if (screen === 'play' && run) { updateRun(dt); if (run) drawRun(ctx); }
     else if (screen === 'title') { updateTitle(dt); drawBackground(6); drawTitle(ctx); }
