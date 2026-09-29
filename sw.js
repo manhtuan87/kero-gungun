@@ -6,11 +6,11 @@
    over at once, and the page reloads itself on the title screen.
    The site hosts other games and the menu, which share the cache storage,
    so only caches whose names start with "gun-" are ever deleted here. */
-var VERSION = 'gun-v17';
+var VERSION = 'gun-v18';
 var FONTS = 'gun-fonts';
 var FILES = [
   './', 'index.html', 'style.css', 'manifest.webmanifest',
-  'js/lang.js', 'js/lang-text.js', 'js/accounts.js', 'js/draw.js', 'js/data.js', 'js/core.js', 'js/art.js', 'js/pics.js', 'js/sound.js', 'js/voice-clips.js', 'js/voice.js', 'js/trainings.js',
+  'js/lang.js', 'js/lang-text.js', 'js/accounts.js', 'js/draw.js', 'js/data.js', 'js/core.js', 'js/art.js', 'js/pics.js', 'js/sound.js', 'js/voice-clips.js', 'js/voice.js', 'js/sound-panel.js', 'js/trainings.js',
   'js/tr/keisan.js', 'js/tr/ookii.js', 'js/tr/junban.js', 'js/tr/patto.js', 'js/tr/nannin.js', 'js/tr/sakki.js',
   'js/tr/janken.js', 'js/tr/jump.js', 'js/tr/tori.js', 'js/tr/kotoba.js', 'js/tr/piano.js', 'js/tr/sudoku.js',
   'js/tr/nanika.js', 'js/tr/hako.js', 'js/versus.js', 'js/app.js',

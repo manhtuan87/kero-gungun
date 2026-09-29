@@ -22,6 +22,7 @@
   <section id="who" class="screen">
     <h2 class="who-title">だれが あそぶ？</h2>
     <div id="who-list" class="who-list"></div>
+    <button class="btn icon small snd-btn snd-corner"></button>
   </section>
 
   <section id="title" class="screen">
@@ -54,12 +55,12 @@
   </section>
 
   <section id="list" class="screen">
-    <header class="bar"><button id="list-back" class="btn icon" data-icon="back" aria-label="もどる"></button><h2>トレーニング</h2><div id="list-stamps" class="wallet stamp-count"></div></header>
+    <header class="bar"><button id="list-back" class="btn icon" data-icon="back" aria-label="もどる"></button><h2>トレーニング</h2><div id="list-stamps" class="wallet stamp-count"></div><button class="btn icon small snd-btn"></button></header>
     <div id="list-body" class="scroll list-body"></div>
   </section>
 
   <section id="intro" class="screen">
-    <header class="bar"><button id="intro-back" class="btn icon" data-icon="back" aria-label="もどる"></button><h2 id="intro-name"></h2></header>
+    <header class="bar"><button id="intro-back" class="btn icon" data-icon="back" aria-label="もどる"></button><h2 id="intro-name"></h2><button class="btn icon small snd-btn"></button></header>
     <div class="intro-card">
       <canvas id="intro-demo" class="intro-demo" width="440" height="280"></canvas>
       <p id="intro-help" class="intro-help"></p>
@@ -75,12 +76,14 @@
       <button id="p-quit" class="btn icon small" data-icon="close" aria-label="やめる"></button>
       <div id="p-name" class="p-name"></div>
       <div id="p-dots" class="p-dots"></div>
+      <button class="btn icon small snd-btn"></button>
     </div>
     <div id="ctrl" class="ctrl"></div>
   </section>
 
   <section id="result" class="screen">
     <div id="r-name" class="r-name"></div>
+    <button class="btn icon small snd-btn snd-corner"></button>
     <div class="r-card">
       <div id="r-title" class="r-title"></div>
       <div id="r-stars" class="clear-stars"><i></i><i></i><i></i></div>
@@ -95,12 +98,12 @@
   </section>
 
   <section id="check" class="screen">
-    <header class="bar"><button id="check-back" class="btn icon" data-icon="back" aria-label="もどる"></button><h2>きょうの チェック</h2></header>
+    <header class="bar"><button id="check-back" class="btn icon" data-icon="back" aria-label="もどる"></button><h2>きょうの チェック</h2><button class="btn icon small snd-btn"></button></header>
     <div id="check-card" class="check-card"></div>
   </section>
 
   <section id="stamps" class="screen">
-    <header class="bar"><button id="stamps-back" class="btn icon" data-icon="back" aria-label="もどる"></button><h2>スタンプ</h2><div id="stamps-count" class="wallet stamp-count"></div></header>
+    <header class="bar"><button id="stamps-back" class="btn icon" data-icon="back" aria-label="もどる"></button><h2>スタンプ</h2><div id="stamps-count" class="wallet stamp-count"></div><button class="btn icon small snd-btn"></button></header>
     <div class="cal-card">
       <div class="cal-head">
         <button id="cal-prev" class="btn icon small" data-icon="back" aria-label="まえの つき"></button>
@@ -114,18 +117,18 @@
   </section>
 
   <section id="records" class="screen">
-    <header class="bar"><button id="records-back" class="btn icon" data-icon="back" aria-label="もどる"></button><h2>きろく</h2></header>
+    <header class="bar"><button id="records-back" class="btn icon" data-icon="back" aria-label="もどる"></button><h2>きろく</h2><button class="btn icon small snd-btn"></button></header>
     <div id="records-body" class="scroll records-body"></div>
   </section>
 
   <section id="shop" class="screen">
-    <header class="bar"><button id="shop-back" class="btn icon" data-icon="back" aria-label="もどる"></button><h2>おみせ</h2><div id="shop-wallet" class="wallet"></div></header>
+    <header class="bar"><button id="shop-back" class="btn icon" data-icon="back" aria-label="もどる"></button><h2>おみせ</h2><div id="shop-wallet" class="wallet"></div><button class="btn icon small snd-btn"></button></header>
     <p id="shop-note" class="shop-note">★を つかって おともだちを ふやそう！</p>
     <div id="shop-grid" class="shop-grid"></div>
   </section>
 
   <section id="vs" class="screen">
-    <header class="bar"><button id="vs-back" class="btn icon" data-icon="back" aria-label="もどる"></button><h2>ふたりで あそぶ</h2></header>
+    <header class="bar"><button id="vs-back" class="btn icon" data-icon="back" aria-label="もどる"></button><h2>ふたりで あそぶ</h2><button class="btn icon small snd-btn"></button></header>
     <div id="vs-card" class="vs-card"></div>
   </section>
 
@@ -133,6 +136,7 @@
     <div id="vs-top" class="vs-half top"></div>
     <div id="vs-bottom" class="vs-half bottom"></div>
     <button id="vs-quit" class="btn icon small vs-quit" data-icon="close" aria-label="やめる"></button>
+    <button class="btn icon small snd-btn snd-mid"></button>
   </section>
 
   <div id="tip" class="tip"></div>
@@ -249,6 +253,7 @@
 <script src="js/sound.js"></script>
 <script src="js/voice-clips.js"></script>
 <script src="js/voice.js"></script>
+<script src="js/sound-panel.js"></script>
 <script src="js/trainings.js"></script>
 <script src="js/tr/keisan.js"></script>
 <script src="js/tr/ookii.js"></script>

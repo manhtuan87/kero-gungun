@@ -10,6 +10,7 @@ Lang.add({
   'こえ': ['Giọng nói', 'Voice', '목소리'],
   'こうかおん': ['Âm thanh', 'Sound effects', '효과음'],
   'おんがく': ['Nhạc', 'Music', '음악'],
+  'おと': ['Âm thanh', 'Sound', '소리'],
   'きょうの チェック': ['Kiểm tra hôm nay', "Today's Check", '오늘의 체크'],
   'できた': ['Xong', 'Done', '완료'],
   'トレーニング': ['Luyện tập', 'Training', '트레이닝'],
