@@ -42,6 +42,26 @@ const HELP_READ = {
   nanika: '絵をよく覚えてね！ そのあと、たくさんの絵の中から、見た絵を選ぶよ。',
   hako: '積み木が、少しだけ見えるよ。いくつあったかな？'
 };
+// おに: the twist of each training, said when おに is chosen (A: the grown-ups' one, where it differs)
+const ONI_HELP_READ = {
+  keisan: '三つの数の、式だよ。前から順番に、計算してね！',
+  ookii: '「一番大きい」か、「一番小さい」か、毎回変わるよ。よく聞いてね！',
+  junban: '葉っぱが、ゆっくり動くよ。順番にタッチしてね！',
+  patto: '卵が裏返った後、入れ替わるよ。目で追いかけてね！',
+  nannin: 'おうちが、二つあるよ。最後に、どっちのおうちか聞くよ！',
+  sakki: '二つ前の絵を、選んでね！ 間の絵に、だまされないでね。',
+  janken: 'ケロはかせの手は、すぐ隠れるよ。覚えて出してね！ ボタンの場所も変わるよ。',
+  jump: '鳥も飛んでくるよ。鳥の時は、ジャンプしないでね！',
+  tori: '小鳥と蝶々を、どっちも数えてね！ 虫は数えないよ。',
+  kotoba: '文字をタッチするたびに、文字の場所が変わるよ！',
+  piano: '楽譜は、少し見たら消えるよ。覚えて弾いてね！',
+  sudoku: '六かける六の、大きい数独だよ！ 卵は六種類。部屋は横長だよ。'
+};
+const ONI_HELP_A_READ = {
+  keisan: '二桁の掛け算や、割り算も出るよ。できるだけ速く、答えてね！',
+  sakki: '三つ前の絵を、選んでね！ 間の絵に、だまされないでね。',
+  sudoku: '一番難しい数独だよ！ あいてるマスが、とても多いよ。'
+};
 const ANIMAL_READ = { かたつむり: 'かたつむり', かめ: '亀', ペンギン: 'ペンギン', カンガルー: 'カンガルー', うま: '馬', チーター: 'チーター', はやぶさ: 'はやぶさ' };
 const WORD_READ = {
   いぬ: '犬', ねこ: '猫', かさ: '傘', くつ: '靴', ほし: '星', はな: '花', かに: '蟹', もも: '桃',
@@ -69,6 +89,9 @@ add(L.first, 'はじめまして！ ケロはかせだよ。毎日一緒に、�
 add(L.checkFirst, 'まずは、今日のチェックから、やってみる？');
 add(L.enough, '今日はたくさん頑張ったね！ 続きは、また明日！');
 add(L.newTraining, '新しいトレーニングが、増えたよ！');
+add(L.newOni, '「鬼」で、遊べるようになったよ！ 挑戦してみてね。');
+add(L.oniGood[0], '鬼を、乗り越えたね！ すごい！');
+add(L.oniGood[1], '鬼も、へっちゃらだね！');
 add(L.newSong, 'ピアノの新しい曲が、増えたよ！');
 add(L.practiceDone, '上手！ 今度は、本当にやってみよう！');
 const COMMON = {
@@ -96,6 +119,7 @@ SOLO.forEach(tr => add(tr.name, TRAINING_READ[tr.id]));
 Data.SONGS.forEach(g => add(g.name, SONG_READ[g.id]));
 // explanations of the trainings
 SOLO.forEach(tr => add(tr.help, HELP_READ[tr.id]));
+T.list.forEach(tr => { if (tr.oniHelp) add(tr.oniHelp, ONI_HELP_READ[tr.id]); if (tr.oniHelpA) add(tr.oniHelpA, ONI_HELP_A_READ[tr.id]); });
 
 // ---------------------------------------------------------------- the daily check
 add('きょうの あたまチェック！ 3つの テストを するよ', '今日の、頭チェック！ 三つのテストをするよ。');
@@ -118,6 +142,13 @@ add('ことりは なんわ？', '小鳥は、何羽？');
 add('この えを おぼえてね', 'この絵を、覚えてね');
 add('ひとつ まえの え は どれ？', '一つ前の絵は、どれ？');
 add('ふたつ まえの え は どれ？', '二つ前の絵は、どれ？');
+// (おに)
+add('みっつ まえの え は どれ？', '三つ前の絵は、どれ？');
+add('いちばん おおきい かず！', '一番大きい数！');
+add('いちばん ちいさい かず！', '一番小さい数！');
+add('ひだりの おうちには なんにん？', '左のおうちには、何人？');
+add('みぎの おうちには なんにん？', '右のおうちには、何人？');
+add('ちょうちょは なんびき？', '蝶々は、何匹？');
 Data.PICS.forEach(p => add(p.name + '！', (WORD_READ[p.name] || p.name) + '！'));
 add('じょうず！', '上手！');
 add('えを よく おぼえてね', '絵を、よく覚えてね');

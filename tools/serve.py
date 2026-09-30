@@ -19,6 +19,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         pass
 
 
+class Server(http.server.ThreadingHTTPServer):
+    request_queue_size = 64   # (several test browsers may ask for every file at once)
+    daemon_threads = True
+
+
 if __name__ == '__main__':
     port = int(sys.argv[1]) if len(sys.argv) > 1 else 8768
-    http.server.ThreadingHTTPServer(('127.0.0.1', port), Handler).serve_forever()
+    Server(('127.0.0.1', port), Handler).serve_forever()

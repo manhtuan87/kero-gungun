@@ -10,7 +10,7 @@
   var KEY = 'kero-gungun-v1';
   var MAX_USERS = 4, HIST = 60, NAME_MAX = 10, RECENT = 80;
   var COLORS = ['#86d65c', '#ff8fc0', '#6cc6ff', '#ffb347', '#b58cff', '#ffd23d'];
-  var LEVEL_IDS = ['e', 'n', 'h', 'ae', 'a', 'ah'];
+  var LEVEL_IDS = ['e', 'n', 'h', 'o', 'ae', 'a', 'ah', 'ao'];   // (a level not listed here loses its records when read)
   // Trainings whose おとな (ふつう) level got a new kind of score with the three grown-up levels (2026-09-29, lvv 2):
   // their old おとな records are left out once, so an old 6 x 6 sudoku time is not taken for a 9 x 9 one.
   var OLD_A = ['patto', 'sudoku', 'piano', 'nannin'];
@@ -189,6 +189,22 @@
     Data.SONGS.forEach(function (g) { if (g.unlock > a && g.unlock <= b) out.songs.push(g.id); });
     return out;
   }
+  // おに (and おとな おに): ★3 at the level before it, or enough stamps.
+  function oniFrom(lv) { for (var i = 0; i < Data.LEVELS.length; i++) if (Data.LEVELS[i].id === lv) return Data.LEVELS[i].oni || null; return null; }
+  function oniOpen(s, id, lv) {
+    var from = oniFrom(lv), u = udata(s), x = from && u.rec[id] && u.rec[id][from];
+    return !from || s.all || stampCount(u) >= Data.ONI_STAMPS || !!(x && x.stars >= 3);
+  }
+  function oniOpenAll(s) {
+    var out = {};
+    Data.TRAININGS.forEach(function (t) { Data.LEVELS.forEach(function (l) { if (l.oni) out[t.id + '/' + l.id] = oniOpen(s, t.id, l.id); }); });
+    return out;
+  }
+  // The おに that opened between two states (for the "you can play おに" card): [{ id, lv }]
+  function oniOpened(before, after) {
+    return Object.keys(after).filter(function (k) { return after[k] && !before[k]; })
+      .map(function (k) { var p = k.split('/'); return { id: p[0], lv: p[1] }; });
+  }
   // The next thing more stamps will open: { need, training | song }.
   function nextUnlock(s) {
     var have = stampCount(udata(s)), best = null;
@@ -204,7 +220,7 @@
   /* info: { id, level, kind, cuts, score, acc, text, today? }
      Returns what happened, for the result screen. */
   function addRun(s, info) {
-    var u = udata(s), today = info.today || dayKey();
+    var u = udata(s), today = info.today || dayKey(), oniBefore = oniOpenAll(s);
     var day = u.days[today] || (u.days[today] = { stamp: false, runs: 0 });
     var before = stampCount(u), stampNew = !day.stamp;
     var rank = rankOf(info.kind, info.cuts, info.score), stars = starsOf(rank, info.acc);
@@ -220,6 +236,7 @@
     day.runs++;
     day.stamp = true;
     var opened = openedBetween(before, stampCount(u));
+    opened.oni = oniOpened(oniBefore, oniOpenAll(s));
     return {
       rank: rank, stars: stars, firstPlay: firstPlay, newBest: newBest, prevBest: prevBest, firstOfDay: firstOfDay,
       stampNew: stampNew, stamps: stampCount(u), opened: opened, runsToday: day.runs
@@ -233,7 +250,7 @@
 
   /* info: { ranks: [3 ranks], tests: [3 ids], today? }  Only the first check of a day is kept. */
   function addCheck(s, info) {
-    var u = udata(s), today = info.today || dayKey();
+    var u = udata(s), today = info.today || dayKey(), oniBefore = oniOpenAll(s);
     var day = u.days[today] || (u.days[today] = { stamp: false, runs: 0 });
     var before = stampCount(u), stampNew = !day.stamp, recorded = !day.check;
     var p = 0;
@@ -249,6 +266,7 @@
     res.stampNew = stampNew;
     res.stamps = stampCount(u);
     res.opened = openedBetween(before, res.stamps);
+    res.opened.oni = oniOpened(oniBefore, oniOpenAll(s));
     return res;
   }
 
@@ -277,7 +295,7 @@
     dayKey: dayKey, parseDay: parseDay, fresh: fresh, sanitize: sanitize, load: load, store: store,
     user: user, udata: udata, isAdult: isAdult, addUser: addUser, removeUser: removeUser, resetUser: resetUser,
     rankOf: rankOf, starsOf: starsOf, better: better,
-    stampCount: stampCount, stampDays: stampDays, isOpen: isOpen, songOpen: songOpen, nextUnlock: nextUnlock, trainingInfo: trainingInfo,
+    stampCount: stampCount, stampDays: stampDays, isOpen: isOpen, songOpen: songOpen, oniOpen: oniOpen, nextUnlock: nextUnlock, trainingInfo: trainingInfo,
     addRun: addRun, addCheck: addCheck, checkedToday: checkedToday, brainAge: brainAge,
     recentOf: recentOf, addRecent: addRecent,
     starsEarned: starsEarned, wallet: wallet

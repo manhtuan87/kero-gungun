@@ -1,27 +1,34 @@
 /* いちばん おおきい かず (the original: 最高数字テスト) — balloons with numbers float up;
-   pop the one with the biggest number. From ふつう on, the balloon sizes do not match the numbers. */
+   pop the one with the biggest number. From ふつう on, the balloon sizes do not match the numbers.
+   おに: each round asks for the biggest or for the smallest number (a banner at the top, and ケロはかせ says it);
+   the sizes mislead the other way round for the smallest. */
 (function (T) {
   'use strict';
   var U = T.U, G = typeof window !== 'undefined' ? window : {};
   var BOX = { x0: 62, y0: 150, x1: 298, y1: 500 };
 
-  // p: { rounds, k (balloons), max, sizes (sizes vary, often misleading), move }
+  // p: { rounds, k (balloons), max, sizes (sizes vary, often misleading), move }; おに: flip (the smallest is asked too)
   function gen(p, r) {
-    var out = [];
+    var out = [], lastSmall = [];
     for (var i = 0; i < p.rounds; i++) {
+      // (おに: the smallest about half the time, never three times the same in a row)
+      var small = !!p.flip && r() < 0.5;
+      if (p.flip && lastSmall.length >= 2 && lastSmall[0] === lastSmall[1]) small = !lastSmall[1];
+      lastSmall = [lastSmall[lastSmall.length - 1], small];
       var nums = U.sample(r, U.range(1, p.max), p.k);
       var radii = nums.map(function () { return p.sizes ? U.int(r, 30, 46) : 38; });
+      var want = (small ? Math.min : Math.max).apply(null, nums);
       if (p.sizes && r() < 0.65) {
-        // the biggest number gets a small balloon, a smaller number the biggest one
-        var top = nums.indexOf(Math.max.apply(null, nums)), other = (top + 1 + U.int(r, 0, p.k - 2)) % p.k;
-        radii[top] = U.int(r, 28, 32); radii[other] = 46;
+        // the number asked for gets a small balloon (the biggest) or a big one (the smallest); another the opposite
+        var top = nums.indexOf(want), other = (top + 1 + U.int(r, 0, p.k - 2)) % p.k;
+        radii[top] = small ? 46 : U.int(r, 28, 32); radii[other] = small ? U.int(r, 28, 32) : 46;
       }
       var pts = U.scatter(r, p.k, BOX, 98) || U.scatter(r, p.k, BOX, 80);
       out.push({
         balloons: nums.map(function (n, j) {
           return { n: n, r: radii[j], x: pts[j].x, y: pts[j].y, color: j % 6, seed: r() * 6 };
         }),
-        answer: Math.max.apply(null, nums)
+        answer: want, small: small
       });
     }
     return out;
@@ -42,6 +49,7 @@
       cur = rounds[ri];
       cur.balloons.forEach(function (b) { b.popped = false; b.wob = 0; b.off = 0; });
       phase = 'in'; pt = 0; since = 0;
+      if (p.flip) api.speak(L(cur.small ? 'いちばん ちいさい かず！' : 'いちばん おおきい かず！'));   // (おに: which one, every time)
       api.progress(ri, rounds.length);
     }
     function pos(b) {
@@ -69,13 +77,18 @@
         } else if (phase === 'out' && pt > 0.45) next();
       },
       draw: function (c, clock) {
-        A.text(c, L('いちばん おおきい かずは どれ？'), 180, 100, 21, '#fff', { lw: 6 });
+        if (!p.flip) A.text(c, L('いちばん おおきい かずは どれ？'), 180, 100, 21, '#fff', { lw: 6 });
         if (!cur) return;
         cur.balloons.forEach(function (b) {
           if (b.popped) return;
           var q = pos(b);
           A.balloon(c, q.x, q.y, b.r, A.BALLOONS[b.color], clock, b.n, { still: !!p.move });
         });
+        if (p.flip) {   // (おに: a big banner over everything, orange for the biggest, blue for the smallest)
+          var sm = cur.small, bw = 250;
+          D.roundRect(c, 180 - bw / 2, 76, bw, 46, 23); D.paint(c, sm ? '#6cc6ff' : '#ffb347', D.INK, 3.4);
+          A.text(c, L(sm ? 'いちばん ちいさい かず！' : 'いちばん おおきい かず！'), 180, 100, 22, '#fff', { lw: 6, max: bw - 20 });
+        }
       },
       down: function (q) {
         if (phase !== 'play') return;
@@ -109,20 +122,24 @@
   T.register({
     id: 'ookii', name: 'いちばん おおきい かず', orig: '最高数字テスト', kind: 'time',
     help: 'ふうせんの なかで\nいちばん おおきい かずを タッチ！\nふうせんの おおきさに だまされないでね',
+    oniHelp: '「いちばん おおきい」か「いちばん ちいさい」か、\nまいかい かわるよ。よく きいてね！',
     levels: {
       e: { rounds: 10, k: 3, max: 9, sizes: false, move: false },
       n: { rounds: 10, k: 4, max: 9, sizes: true, move: false },
       h: { rounds: 10, k: 5, max: 20, sizes: true, move: true },
+      o: { rounds: 10, k: 5, max: 20, sizes: true, move: true, flip: true },
       ae: { rounds: 12, k: 5, max: 99, sizes: true, move: false },
       a: { rounds: 15, k: 6, max: 99, sizes: true, move: true },
       ah: { rounds: 15, k: 7, max: 999, sizes: true, move: true },
+      ao: { rounds: 15, k: 7, max: 999, sizes: true, move: true, flip: true },
       test: { rounds: 10, k: 4, max: 9, sizes: true, move: false },
       testA: { rounds: 12, k: 6, max: 99, sizes: true, move: true },
-      practice: { rounds: 3 }
+      practice: { rounds: 3 },
+      practiceO: { rounds: 4, k: 3, max: 9, sizes: false, move: false, flip: true }
     },
     ranks: {
-      e: [9, 12, 15, 19, 25, 34], n: [11, 14, 18, 23, 30, 40], h: [14, 18, 23, 29, 37, 50],
-      ae: [11, 14, 17, 21, 27, 36], a: [14, 17, 21, 26, 32, 42], ah: [17, 21, 26, 32, 40, 52],
+      e: [9, 12, 15, 19, 25, 34], n: [11, 14, 18, 23, 30, 40], h: [14, 18, 23, 29, 37, 50], o: [17, 22, 28, 35, 45, 60],
+      ae: [11, 14, 17, 21, 27, 36], a: [14, 17, 21, 26, 32, 42], ah: [17, 21, 26, 32, 40, 52], ao: [21, 26, 32, 40, 50, 65],
       test: [11, 14, 18, 23, 30, 40], testA: [12, 15, 18, 22, 28, 36]
     },
     gen: gen,

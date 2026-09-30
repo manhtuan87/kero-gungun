@@ -1,23 +1,27 @@
 /* とり かぞえ (the original: 野鳥数え) — a forest full of little creatures; count only the birds.
-   Grown-ups see the forest for 5 seconds only. The same questions are used by ふたりで (two players). */
+   Grown-ups see the forest for 5 seconds only. The same questions are used by ふたりで (two players).
+   おに: count the butterflies too — first "how many birds?", then "how many butterflies?" (ladybugs and bees are not counted). */
 (function (T) {
   'use strict';
   var U = T.U, G = typeof window !== 'undefined' ? window : {};
   var OTHERS = ['butterfly', 'ladybug', 'bee'];
   var BOX = { x0: 34, y0: 136, x1: 326, y1: 420 };
 
-  // p: { birds: [a, b], others, move (0 still, 1 drifting, 2 flying) }
+  // p: { birds: [a, b], others, move (0 still, 1 drifting, 2 flying) }; おに: flies: [a, b] (butterflies, counted too;
+  // then the others are ladybugs and bees only). answer: the birds; flies: the butterflies (おに)
   function scene(p, r, box, minD) {
     box = box || BOX;
-    var n = U.span(r, p.birds), m = p.others, pts = U.scatter(r, n + m, box, minD || 46);
-    var things = [];
-    for (var i = 0; i < n + m; i++) {
+    var n = U.span(r, p.birds), f = p.flies ? U.span(r, p.flies) : 0, m = p.others, pts = U.scatter(r, n + f + m, box, minD || 46);
+    var things = [], others = p.flies ? ['ladybug', 'bee'] : OTHERS;
+    for (var i = 0; i < n + f + m; i++) {
       things.push({
-        bird: i < n, kind: i < n ? 'bird' : U.pick(r, OTHERS), x: pts[i].x, y: pts[i].y,
+        bird: i < n, fly: i >= n && i < n + f, kind: i < n ? 'bird' : i < n + f ? 'butterfly' : U.pick(r, others), x: pts[i].x, y: pts[i].y,
         color: U.int(r, 0, 3), dir: r() < 0.5 ? -1 : 1, seed: r() * 6, vx: (r() - 0.5) * 70, vy: (r() - 0.5) * 50
       });
     }
-    return { things: U.shuffle(r, things), answer: n };
+    var out = { things: U.shuffle(r, things), answer: n };
+    if (p.flies) out.flies = f;
+    return out;
   }
   function gen(p, r) { var out = []; for (var i = 0; i < p.q; i++) out.push(scene(p, r)); return out; }
 
@@ -52,19 +56,22 @@
   function start(api, p) {
     var D = G.Draw, A = G.Art;
     var qs = gen(p, api.rnd), qi = -1, Q = null, phase = 'wait', pt = 0, correct = 0, clock = 0, counted = 0, verdict = null;
-    var pad = api.answerPad({ expect: function () { return Q ? Q.answer : 0; }, onAnswer: answer });
+    var step = 0, said = [], seen = 0;   // (おに: step 0 the birds, 1 the butterflies; seen: how long the forest showed)
+    var total = qs.length * (p.flies ? 2 : 1);
+    function want() { return step ? Q.flies : Q.answer; }
+    var pad = api.answerPad({ expect: function () { return Q ? want() : 0; }, onAnswer: answer });
     pad.enable(false);
 
     function next() {
       qi++;
       if (qi >= qs.length) {
         phase = 'end';
-        api.finish({ score: correct, acc: correct / qs.length, text: U.res.right(correct, qs.length) });
+        api.finish({ score: correct, acc: correct / total, text: U.res.right(correct, total) });
         return;
       }
       Q = qs[qi];
       Q.things.forEach(function (th) { th.moving = p.move === 2; });
-      phase = 'look'; pt = 0; counted = 0; verdict = null;
+      phase = 'look'; pt = 0; counted = 0; verdict = null; step = 0; said = []; seen = 0; hid = false;
       pad.enable(true);
       api.speak(L('ことりは なんわ？'));
       api.progress(qi, qs.length);
@@ -73,32 +80,46 @@
     function answer(v) {
       if (phase !== 'look' && phase !== 'hidden') return;
       pad.enable(false); pad.hint(null);
-      verdict = v === Q.answer;
-      if (verdict) { correct++; api.ok(180, 280, 70); } else api.ng(180, 280, 60);
+      var ok = v === want();
+      said[step] = ok;
+      if (ok) { correct++; api.ok(180, 280, 70); } else api.ng(180, 280, 60);
+      if (p.flies && step === 0) {   // (おに: now the butterflies; the forest stays as it is: shown or hidden)
+        step = 1; phase = 'between'; pt = 0;
+        return;
+      }
+      verdict = p.flies ? said[0] && said[1] : ok;
       phase = 'count'; pt = 0;
       api.progress(qi + 1, qs.length);
     }
 
+    var hid = false;   // (the forest has been hidden this question: grown-ups see it for a few seconds only)
     return {
       theme: 4,
-      begin: next,
+      begin: function () { hid = false; next(); },
       update: function (dt, playing) {
         clock += dt; pt += dt;
         if (!playing) return;
-        if (phase === 'look' && p.hideAfter && pt > p.hideAfter) { phase = 'hidden'; pt = 0; }
+        if (phase === 'look' || (phase === 'between' && !hid)) seen += dt;
+        if (phase === 'look' && p.hideAfter && seen > p.hideAfter) { phase = 'hidden'; pt = 0; hid = true; }
+        if (phase === 'between' && pt > (said[0] ? 0.6 : 1.2)) {
+          phase = hid ? 'hidden' : 'look'; pt = 0;
+          pad.enable(true);
+          api.speak(L('ちょうちょは なんびき？'));
+          if (p.practice) pad.hint(Q.flies);
+        }
         if (phase === 'count') {
-          var want = Math.min(Q.answer, Math.floor(pt / 0.22));
-          if (want > counted) { counted = want; api.sfx('peep'); }
-          if (pt > Q.answer * 0.22 + 1.6) next();
+          var all = Q.answer + (p.flies ? Q.flies : 0), w2 = Math.min(all, Math.floor(pt / 0.22));
+          if (w2 > counted) { counted = w2; api.sfx('peep'); }
+          if (pt > all * 0.22 + 1.6) next();
         }
       },
       draw: function (c) {
         drawForest(c, D, 20, 118, 340, 438);
         if (!Q) { A.text(c, L('ことりは なんわ？'), 180, 90, 24, '#fff', { lw: 7 }); return; }
-        var t = clock, n = 0;
+        var t = clock, n = 0, nf = 0;
         Q.things.forEach(function (th) {
           // while counting, everybody stays where they were
-          var q = phase === 'count' ? (th.last || { x: th.x, y: th.y }) : (th.last = place(th, pt, p.move));
+          var q = phase === 'count' ? (th.last || { x: th.x, y: th.y }) : (th.last = place(th, seen || pt, p.move));
           drawThing(c, A, th, q, t);
           if (phase === 'count' && th.bird) {
             n++;
@@ -108,17 +129,27 @@
             }
           }
         });
-        if (phase === 'hidden') {
+        if (phase === 'count' && p.flies) Q.things.forEach(function (th) {   // (おに: then the butterflies, in pink)
+          if (!th.fly) return;
+          nf++;
+          var q = th.last || { x: th.x, y: th.y };
+          if (Q.answer + nf <= counted) {
+            D.circle(c, q.x, q.y - 26, 11); D.paint(c, '#ffd0e4', D.INK, 2.4);
+            A.text(c, String(nf), q.x, q.y - 25, 14, D.INK, { stroke: false });
+          }
+        });
+        if (phase === 'hidden' || (phase === 'between' && hid)) {
           c.save(); D.roundRect(c, 20, 118, 320, 320, 30); c.clip();
           c.fillStyle = '#7fcf62'; c.fillRect(20, 118, 320, 320);
           c.fillStyle = '#96dc7a';
           for (var i = 0; i < 16; i++) { D.circle(c, 30 + (i % 4) * 100 + (Math.floor(i / 4) % 2) * 50, 130 + Math.floor(i / 4) * 90, 58); c.fill(); }
           c.restore();
         }
-        var head = phase === 'count' ? L('こたえは {n}わ', { n: Q.answer }) : L('ことりは なんわ？');
-        A.text(c, head, 180, 90, phase === 'count' ? 28 : 24, phase === 'count' ? (verdict ? '#ff8fc0' : '#6cc6ff') : '#fff', { lw: 7 });
+        var head = phase === 'count' ? (p.flies ? L('ことり {a}わ・ちょうちょ {b}ひき', { a: Q.answer, b: Q.flies }) : L('こたえは {n}わ', { n: Q.answer })) :
+          L(step ? 'ちょうちょは なんびき？' : 'ことりは なんわ？');
+        A.text(c, head, 180, 90, phase === 'count' ? (p.flies ? 22 : 28) : 24, phase === 'count' ? (verdict ? '#ff8fc0' : '#6cc6ff') : '#fff', { lw: 7, max: 330 });
       },
-      peek: function () { return phase === 'look' || phase === 'hidden' ? Q.answer : null; },   // for playtesting
+      peek: function () { return phase === 'look' || phase === 'hidden' ? want() : null; },   // for playtesting
       end: function () {}
     };
   }
@@ -126,6 +157,7 @@
   T.register({
     id: 'tori', name: 'とり かぞえ', orig: '野鳥数え', kind: 'count',
     help: 'もりの なかに いる\nことりだけを かぞえてね！\nちょうちょや むしは かぞえないよ',
+    oniHelp: 'ことりと ちょうちょを\nどっちも かぞえてね！ むしは かぞえないよ',
     levels: {
       e: { q: 5, birds: [2, 5], others: 3, move: 0 },
       n: { q: 5, birds: [3, 8], others: 6, move: 1 },
@@ -133,9 +165,15 @@
       ae: { q: 5, birds: [5, 10], others: 10, move: 2 },
       a: { q: 5, birds: [6, 14], others: 12, move: 2, hideAfter: 5 },
       ah: { q: 5, birds: [8, 16], others: 16, move: 2, hideAfter: 4 },
-      practice: { q: 2, birds: [2, 3], others: 2, move: 0 }
+      practice: { q: 2, birds: [2, 3], others: 2, move: 0 },
+      o: { q: 5, birds: [3, 8], flies: [2, 6], others: 4, move: 1 },
+      ao: { q: 5, birds: [6, 12], flies: [4, 9], others: 8, move: 2, hideAfter: 5 },
+      practiceO: { q: 2, birds: [2, 3], flies: [1, 2], others: 1, move: 0, hideAfter: 0 }
     },
-    ranks: { e: [5, 5, 4, 3, 2, 1], n: [5, 5, 4, 3, 2, 1], h: [5, 5, 4, 3, 2, 1], ae: [5, 5, 4, 3, 2, 1], a: [5, 5, 4, 3, 2, 1], ah: [5, 5, 4, 3, 2, 1] },
+    ranks: {
+      e: [5, 5, 4, 3, 2, 1], n: [5, 5, 4, 3, 2, 1], h: [5, 5, 4, 3, 2, 1], o: [10, 9, 8, 6, 4, 2],
+      ae: [5, 5, 4, 3, 2, 1], a: [5, 5, 4, 3, 2, 1], ah: [5, 5, 4, 3, 2, 1], ao: [10, 9, 8, 6, 4, 2]
+    },
     gen: gen, scene: scene, place: place, drawForest: drawForest, drawThing: drawThing,
     start: start,
     icon: function (c, t) {

@@ -1,5 +1,7 @@
 /* けいさん (the original: 計算25 / 計算100) — answer the sums on the chalkboard as fast as you can.
-   Children tap the answer (0-10); grown-ups type it (25 sums with two-digit numbers and times tables). */
+   Children tap the answer (0-10); grown-ups type it (25 sums with two-digit numbers and times tables).
+   おに: children get three numbers (3 ＋ 4 − 2, worked out from the left, every step from 0 to 10); grown-ups get
+   two-digit sums that carry, take-aways that borrow, two-digit times one-digit, and divisions. */
 (function (T) {
   'use strict';
   var U = T.U, G = typeof window !== 'undefined' ? window : {};
@@ -28,13 +30,34 @@
     return { a: a, b: b, op: '×', ans: a * b };
   }
 
-  // p: { n, ops: '+' | '+-', max, adult, single (one-digit numbers only) }
+  // おに (children): a ± b ± c, from the left, every step from 0 to 10
+  function threeQ(r) {
+    for (var t = 0; t < 200; t++) {
+      var a = U.int(r, 1, 9), b = U.int(r, 1, 9), c = U.int(r, 1, 9), o1 = r() < 0.5 ? '＋' : '−', o2 = r() < 0.5 ? '＋' : '−';
+      var m = o1 === '＋' ? a + b : a - b, ans = o2 === '＋' ? m + c : m - c;
+      if (m < 0 || m > 10 || ans < 0 || ans > 10) continue;
+      return { a: a, b: b, c: c, op: o1, op2: o2, ans: ans };
+    }
+    return { a: 3, b: 4, c: 2, op: '＋', op2: '−', ans: 5 };
+  }
+  // おに (grown-ups): 47 ＋ 38 (a carry), 83 − 47 (a borrow), 23 × 4, 84 ÷ 7
+  function hardQ(r) {
+    var k = r(), a, b;
+    if (k < 0.25) { do { a = U.int(r, 15, 79); b = U.int(r, 12, 99 - a); } while (a % 10 + b % 10 < 10); return { a: a, b: b, op: '＋', ans: a + b }; }
+    if (k < 0.5) { do { a = U.int(r, 31, 98); b = U.int(r, 12, a - 10); } while (a % 10 >= b % 10); return { a: a, b: b, op: '−', ans: a - b }; }
+    if (k < 0.75) { a = U.int(r, 12, 49); b = U.int(r, 3, 9); return { a: a, b: b, op: '×', ans: a * b }; }
+    b = U.int(r, 3, 9); var q = U.int(r, 4, 19);
+    return { a: b * q, b: b, op: '÷', ans: q };
+  }
+
+  // p: { n, ops: '+' | '+-', max, adult, single (one-digit numbers only) }; おに: three (children), hard (grown-ups)
   // A sum comes only once in a run while there are others left (the smallest levels have only a few).
   function gen(p, r) {
     var qs = [], guard = 0, seen = {};
     while (qs.length < p.n && guard++ < 5000) {
-      var q = p.single ? singleQ(r) : p.adult ? adultQ(r) : kidQ(p, r), last = qs[qs.length - 1], key = q.a + q.op + q.b;
-      if (last && last.a === q.a && last.b === q.b && last.op === q.op) continue;
+      var q = p.three ? threeQ(r) : p.hard ? hardQ(r) : p.single ? singleQ(r) : p.adult ? adultQ(r) : kidQ(p, r), last = qs[qs.length - 1];
+      var key = q.a + q.op + q.b + (q.c != null ? q.op2 + q.c : '');
+      if (last && last.a === q.a && last.b === q.b && last.op === q.op && last.c === q.c) continue;
       if (seen[key] && guard < 3000) continue;
       if (qs.length >= 2 && q.ans === last.ans && q.ans === qs[qs.length - 2].ans) continue;
       qs.push(q); seen[key] = true;
@@ -106,6 +129,18 @@
         if (!cur) return;
         if (!active && !shown && i === 0) {
           A.text(c, L('よーい…'), B.x + B.w / 2, B.y + B.h / 2, 40, 'rgba(255,255,255,.85)', { stroke: false });
+        } else if (cur.c != null) {   // (おに: three numbers)
+          var xs3 = [46, 92, 138, 184, 230, 272, 312], y3 = B.y + 122, fs3 = 50, ch3 = 'rgba(255,255,255,.95)';
+          [String(cur.a), cur.op, String(cur.b), cur.op2, String(cur.c), '＝'].forEach(function (tk, k) {
+            A.text(c, tk, B.x + xs3[k] - 10, y3, k % 2 ? fs3 * 0.8 : fs3, ch3, { stroke: false });
+          });
+          var ans3 = shown ? String(shown.v) : '？';
+          A.text(c, ans3, B.x + xs3[6] - 6, y3, fs3, shown ? '#ffb3d1' : 'rgba(255,255,255,.75)', { stroke: false });
+          if (!p.adult && (wrong >= 2 || p.practice)) {
+            dots(c, D, B.x + xs3[0] - 10, B.y + 46, cur.a, '#ffe066');
+            dots(c, D, B.x + xs3[2] - 10, B.y + 46, cur.b, '#9ee0ff');
+            dots(c, D, B.x + xs3[4] - 10, B.y + 46, cur.c, '#ffb3d1');
+          }
         } else {
           var big = String(cur.a).length > 1 || String(cur.b).length > 1, fs = big ? 50 : 60;
           var xs = big ? [62, 136, 196, 246, 300] : [74, 128, 180, 232, 286], y = B.y + 122;
@@ -115,7 +150,7 @@
           A.text(c, String(cur.b), B.x + xs[2] - 10, y, fs, chalk, { stroke: false });
           A.text(c, '＝', B.x + xs[3] - 10, y, fs * 0.8, chalk, { stroke: false });
           var ansTxt = shown ? String(shown.v) : (p.adult && pad.buf ? pad.buf : '？');
-          A.text(c, ansTxt, B.x + xs[4] - 6, y, fs, shown ? '#ffb3d1' : (pad.buf ? '#fff2a8' : 'rgba(255,255,255,.75)'), { stroke: false });
+          A.text(c, ansTxt, B.x + xs[4] - 6, y, String(ansTxt).length > 2 ? fs * 0.8 : fs, shown ? '#ffb3d1' : (pad.buf ? '#fff2a8' : 'rgba(255,255,255,.75)'), { stroke: false });
           var showDots = !p.adult && cur.ans <= 10 && cur.a <= 10 && (p.dots || wrong >= 2 || p.practice);
           if (showDots) {
             dots(c, D, B.x + xs[0] - 10, B.y + 46, cur.a, '#ffe066');
@@ -123,7 +158,7 @@
           }
         }
         c.save(); c.translate(292, 398); c.scale(0.72, 0.72);
-        D.critter(c, { x: 0, y: 0, t: clock, kind: 'frog', look: { x: -120, y: -150 }, mode: hakase.mode, mt: hakase.mt, wear: A.hakase });
+        D.critter(c, { x: 0, y: 0, t: clock, kind: 'frog', look: { x: -120, y: -150 }, mode: hakase.mode, mt: hakase.mt, wear: p.oni ? A.hakaseOni : A.hakase });
         c.restore();
       },
       peek: function () { return active && qs[i] ? qs[i].ans : null; },   // for playtesting
@@ -134,20 +169,26 @@
   T.register({
     id: 'keisan', name: 'けいさん', orig: '計算25', kind: 'time',
     help: 'しきを みて こたえの\nすうじを タッチしてね！',
+    oniHelp: '3つの かずの しきだよ。\nまえから じゅんばんに けいさんしてね！',
+    oniHelpA: '2けたの かけざんや わりざんも でるよ。\nできるだけ はやく こたえてね！',
     levels: {
       e: { n: 10, ops: '+', max: 5, dots: true },
       n: { n: 10, ops: '+', max: 10 },
       h: { n: 10, ops: '+-', max: 10 },
+      o: { n: 10, three: true },
       ae: { n: 20, single: true },
       a: { n: 25 },
       ah: { n: 100, single: true },
+      ao: { n: 25, hard: true },
       test: { n: 10, ops: '+', max: 10 },
       testA: { n: 20 },
-      practice: { n: 3, dots: true }
+      practice: { n: 3, dots: true },
+      practiceO: { n: 3, three: true },
+      practiceAO: { n: 3, hard: true }
     },
     ranks: {
-      e: [22, 28, 36, 46, 60, 80], n: [20, 26, 34, 44, 58, 80], h: [24, 30, 38, 50, 65, 90],
-      ae: [14, 18, 23, 29, 37, 50], a: [30, 38, 46, 56, 70, 90], ah: [75, 95, 120, 150, 190, 250],
+      e: [22, 28, 36, 46, 60, 80], n: [20, 26, 34, 44, 58, 80], h: [24, 30, 38, 50, 65, 90], o: [34, 42, 54, 70, 92, 125],
+      ae: [14, 18, 23, 29, 37, 50], a: [30, 38, 46, 56, 70, 90], ah: [75, 95, 120, 150, 190, 250], ao: [60, 75, 92, 115, 145, 190],
       test: [20, 26, 34, 44, 58, 80], testA: [24, 30, 37, 45, 56, 72]
     },
     gen: gen,

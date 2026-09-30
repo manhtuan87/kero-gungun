@@ -1,11 +1,12 @@
 /* ことば つくり (the original: 漢字合成, here with hiragana) — look at the picture and put the
-   letter blocks in order to make its name. むずかしい adds letters that are not in the word. */
+   letter blocks in order to make its name. むずかしい adds letters that are not in the word.
+   おに: after each right letter, the letters still to use change places (and more letters are not in the word). */
 (function (T) {
   'use strict';
   var U = T.U, G = typeof window !== 'undefined' ? window : {};
   var DATA = typeof Data !== 'undefined' ? Data : require('../data.js');
 
-  // p: { q, len: [a, b], dummy, recent (pictures shown lately: they come last) }
+  // p: { q, len: [a, b], dummy, recent (pictures shown lately: they come last) }; おに: reshuffle
   function gen(p, r) {
     var words = DATA.PICS.filter(function (x) { return x.name.length >= p.len[0] && x.name.length <= p.len[1]; });
     var ids = U.fresh(r, words.map(function (w) { return w.id; }), Math.min(p.q, words.length), p.recent);
@@ -49,12 +50,23 @@
       for (var i = 0; i < Q.tiles.length; i++) if (used.indexOf(i) < 0 && Q.tiles[i] === Q.word.charAt(filled)) return i;
       return -1;
     }
+    // おに: the letters still to use change places (at least one of them moves)
+    function reshuffle() {
+      var free = [];
+      for (var k = 0; k < Q.tiles.length; k++) if (used.indexOf(k) < 0) free.push(k);
+      if (free.length < 2) return;
+      var was = free.map(function (k) { return Q.tiles[k]; }), now = U.shuffle(api.rnd, was);
+      if (now.join('') === was.join('')) now.push(now.shift());
+      free.forEach(function (k, j) { Q.tiles[k] = now[j]; ch.set(k, { label: now[j], size: 38 }); });
+      api.sfx('whoosh');
+    }
     function tap(i) {
       if (phase !== 'play' || used.indexOf(i) >= 0 || i >= Q.tiles.length) return;
       if (Q.tiles[i] === Q.word.charAt(filled)) {
         used.push(i); filled++; since = 0;
         ch.mark(i, 'gone'); ch.hint(-1);
         if (filled < Q.word.length) api.sfx('ok');   // (the last letter: api.ok below)
+        if (p.reshuffle && filled < Q.word.length) reshuffle();
         if (filled >= Q.word.length) {
           phase = 'done'; pt = 0;
           api.ok(180, 190, 76);
@@ -106,6 +118,7 @@
   T.register({
     id: 'kotoba', name: 'ことば つくり', orig: '漢字合成', kind: 'time', pool: 'pics',
     help: 'えを みて なまえの もじを\nじゅんばんに タッチしてね！',
+    oniHelp: 'もじを タッチする たびに、\nもじの ばしょが かわるよ！',
     levels: {
       e: { q: 6, len: [2, 2], dummy: 0 },
       n: { q: 6, len: [3, 3], dummy: 1 },
@@ -113,10 +126,14 @@
       ae: { q: 6, len: [3, 4], dummy: 2 },
       a: { q: 8, len: [3, 5], dummy: 3 },
       ah: { q: 8, len: [4, 6], dummy: 4 },
-      practice: { q: 2, len: [2, 2], dummy: 0 }
+      practice: { q: 2, len: [2, 2], dummy: 0 },
+      o: { q: 6, len: [3, 4], dummy: 3, reshuffle: true },
+      ao: { q: 8, len: [4, 6], dummy: 5, reshuffle: true },
+      practiceO: { q: 2, len: [2, 2], dummy: 1, reshuffle: true }
     },
     ranks: {
-      e: [10, 13, 17, 22, 30, 42], n: [16, 20, 25, 32, 42, 58], h: [24, 30, 38, 48, 62, 85], ae: [14, 17, 21, 26, 33, 43], a: [20, 24, 29, 35, 43, 55], ah: [28, 34, 41, 50, 62, 80]
+      e: [10, 13, 17, 22, 30, 42], n: [16, 20, 25, 32, 42, 58], h: [24, 30, 38, 48, 62, 85], o: [24, 30, 38, 48, 62, 85],
+      ae: [14, 17, 21, 26, 33, 43], a: [20, 24, 29, 35, 43, 55], ah: [28, 34, 41, 50, 62, 80], ao: [36, 44, 53, 64, 78, 100]
     },
     gen: gen,
     start: start,

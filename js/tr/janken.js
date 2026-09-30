@@ -1,7 +1,8 @@
 /* あとだし じゃんけん (the original: 後出し勝負テスト) — ケロはかせ shows a hand and says
    "かって！" (win) or "まけて！" (lose); answer with the right hand as fast as you can.
    Losing on purpose is the hard part: it trains holding back the hand you want to show.
-   At おとな むずかしい the three buttons change places every time. */
+   At おとな むずかしい the three buttons change places every time.
+   おに: the hand shows only for a moment and then hides (remember it); the buttons change places too. */
 (function (T) {
   'use strict';
   var U = T.U, G = typeof window !== 'undefined' ? window : {};
@@ -14,7 +15,7 @@
   // 0 グー beats 1 チョキ, 1 チョキ beats 2 パー, 2 パー beats 0 グー
   function answerFor(hand, ask) { return ask === 'win' ? (hand + 2) % 3 : ask === 'lose' ? (hand + 1) % 3 : hand; }
 
-  // p: { q, seq: 'win' | 'wl' (win, then lose) | 'mix', shuffle (the buttons change places) }
+  // p: { q, seq: 'win' | 'wl' (win, then lose) | 'mix', shuffle (the buttons change places) }; おに: hide (s the hand shows)
   function gen(p, r) {
     var out = [], half = Math.ceil(p.q / 2);
     for (var i = 0; i < p.q; i++) {
@@ -129,7 +130,7 @@
       draw: function (c, clock) {
         // ケロはかせ below the hand
         c.save(); c.translate(180, 408); c.scale(0.78, 0.78);
-        D.critter(c, { x: 0, y: 0, t: clock, kind: 'frog', look: { x: 0, y: -200 }, mode: hak.mode, mt: hak.mt, wear: A.hakase });
+        D.critter(c, { x: 0, y: 0, t: clock, kind: 'frog', look: { x: 0, y: -200 }, mode: hak.mode, mt: hak.mt, wear: p.oni ? A.hakaseOni : A.hakase });
         c.restore();
         if (!cur) {
           A.text(c, L('じゃん けん…'), 180, 200, 40, '#fff', { lw: 9 });
@@ -146,7 +147,10 @@
         D.circle(c, HX, HY, 84); D.paint(c, '#fffdf5', D.INK, 4);
         c.save(); c.beginPath(); c.moveTo(HX - 14, HY + 80); c.lineTo(HX, HY + 104); c.lineTo(HX + 14, HY + 80); c.closePath(); D.paint(c, '#fffdf5', D.INK, 4); c.restore();
         D.circle(c, HX, HY, 80); D.paint(c, '#fffdf5');
-        A.jankenHand(c, cur.hand, HX, HY - 4, 1.2 * s, '#9ee07a');
+        if (p.hide && phase === 'show' && pt > p.hide) {   // (おに: the hand is hidden now)
+          D.circle(c, HX, HY, 62); D.paint(c, '#ffe0ec');
+          A.text(c, '？', HX, HY + 2, 84, '#ff8fc0', { lw: 12 });
+        } else A.jankenHand(c, cur.hand, HX, HY - 4, 1.2 * s, '#9ee07a');
       },
       peek: function () { return phase === 'show' && active ? btn(cur.ans) : null; },   // for playtesting (the button to press)
       end: function () {}
@@ -156,20 +160,24 @@
   T.register({
     id: 'janken', name: 'あとだし じゃんけん', orig: '後出し勝負テスト', kind: 'time',
     help: 'ケロはかせの てを みて\n「かって」なら かつ て、「まけて」なら まける てを\nはやく だしてね！',
+    oniHelp: 'ケロはかせの ては すぐ かくれるよ。\nおぼえて だしてね！ ボタンの ばしょも かわるよ',
     levels: {
       e: { q: 10, seq: 'win' },
       n: { q: 10, seq: 'wl' },
       h: { q: 12, seq: 'mix' },
+      o: { q: 12, seq: 'mix', shuffle: true, hide: 1.0 },
       ae: { q: 16, seq: 'wl' },
       a: { q: 20, seq: 'mix' },
       ah: { q: 24, seq: 'mix', shuffle: true },
+      ao: { q: 24, seq: 'mix', shuffle: true, hide: 0.5 },
       test: { q: 10, seq: 'wl' },
       testA: { q: 16, seq: 'mix' },
-      practice: { q: 4, seq: 'wl' }
+      practice: { q: 4, seq: 'wl' },
+      practiceO: { q: 4, seq: 'mix', shuffle: false, hide: 1.6 }
     },
     ranks: {
-      e: [8, 10, 13, 17, 22, 30], n: [10, 13, 16, 20, 26, 35], h: [14, 17, 21, 26, 33, 45],
-      ae: [10, 12, 15, 19, 24, 32], a: [14, 17, 20, 24, 29, 36], ah: [20, 24, 29, 35, 43, 55],
+      e: [8, 10, 13, 17, 22, 30], n: [10, 13, 16, 20, 26, 35], h: [14, 17, 21, 26, 33, 45], o: [18, 22, 27, 34, 43, 58],
+      ae: [10, 12, 15, 19, 24, 32], a: [14, 17, 20, 24, 29, 36], ah: [20, 24, 29, 35, 43, 55], ao: [24, 29, 35, 42, 52, 66],
       test: [10, 13, 16, 20, 26, 35], testA: [12, 14, 17, 20, 24, 30]
     },
     gen: gen, answerFor: answerFor,

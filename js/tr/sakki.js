@@ -1,6 +1,7 @@
 /* さっきの え (the original: 直前写真) — pictures come one at a time; tap the one shown just before.
    かんたん: remember the picture you just saw. むずかしい: the picture on screen is among the choices too.
-   Grown-ups: the picture from one or two before; at おとな むずかしい the picture in between is among the choices too. */
+   Grown-ups: the picture from one or two before; at おとな むずかしい the picture in between is among the choices too.
+   おに: children tell the picture from two before, grown-ups from three before (the ones in between are choices too). */
 (function (T) {
   'use strict';
   var U = T.U, G = typeof window !== 'undefined' ? window : {};
@@ -8,13 +9,13 @@
 
   function pool() { return G.Pics ? G.Pics.ids : require('../data.js').PICS.map(function (x) { return x.id; }); }
 
-  /* p: { mode: 'now' | 'prev' | 'prev2', q, k (choices), trick (the picture on screen is a choice too), trick2 (and the one
-     in between), recent (pictures shown lately: they come last) }
+  /* p: { mode: 'now' | 'prev' | 'prev2' | 'prev3' (おに), q, k (choices), trick (the picture on screen is a choice too),
+     trick2 (and the ones in between), recent (pictures shown lately: they come last) }
      Returns { seq, back, qs: [{ cur, answer, choices: [ids], right (index) }] } */
   function gen(p, r, ids) {
     var all = ids || pool();
     ids = U.fresh(r, all, Math.min(all.length, p.q + 10), p.recent);   // (the pictures of this run)
-    var back = p.mode === 'prev2' ? 2 : p.mode === 'prev' ? 1 : 0, seq = [];
+    var back = p.mode === 'prev3' ? 3 : p.mode === 'prev2' ? 2 : p.mode === 'prev' ? 1 : 0, seq = [];
     while (seq.length < p.q + back) {
       var id = U.pick(r, ids);
       if (seq.slice(-3).indexOf(id) >= 0) continue;
@@ -24,7 +25,7 @@
     for (var j = 0; j < p.q; j++) {
       var cur = seq[j + back], ans = seq[j], ch = [ans];
       if (p.trick && cur !== ans) ch.push(cur);
-      if (p.trick2 && back === 2 && ch.indexOf(seq[j + 1]) < 0 && seq[j + 1] !== cur) ch.push(seq[j + 1]);
+      for (var m = 1; p.trick2 && m < back; m++) if (ch.length < p.k && ch.indexOf(seq[j + m]) < 0 && seq[j + m] !== cur) ch.push(seq[j + m]);
       while (ch.length < p.k) {
         var d = U.pick(r, ids);
         if (ch.indexOf(d) < 0 && d !== cur) ch.push(d);
@@ -53,6 +54,7 @@
       ch.enable(true);
     }
     function showCard(i) { shownI = i; slide = 0; flip = 0; api.sfx('whoosh'); }
+    function askText() { return L(g.back === 3 ? 'みっつ まえの え は どれ？' : g.back === 2 ? 'ふたつ まえの え は どれ？' : 'ひとつ まえの え は どれ？'); }
 
     function next() {
       j++;
@@ -91,7 +93,7 @@
         if (phase === 'intro') {
           if (pt > 1.8) {
             if (shownI < g.back - 1) { showCard(shownI + 1); pt = 0; }
-            else { j = -1; next(); api.speak(L(g.back === 2 ? 'ふたつ まえの え は どれ？' : 'ひとつ まえの え は どれ？')); }
+            else { j = -1; next(); api.speak(askText()); }
           }
         } else if (phase === 'look' && pt > (p.show || 2)) {
           phase = 'hide'; pt = 0; api.sfx('flip');
@@ -103,7 +105,7 @@
         } else if (phase === 'after' && pt > 0.7) next();
       },
       draw: function (c, clock) {
-        var q = g.qs[Math.max(0, j)], ask = L(p.mode === 'now' ? 'いまの え は どれ？' : g.back === 2 ? 'ふたつ まえの え は どれ？' : 'ひとつ まえの え は どれ？');
+        var q = g.qs[Math.max(0, j)], ask = p.mode === 'now' ? L('いまの え は どれ？') : askText();
         if (phase === 'intro') A.text(c, L('この えを おぼえてね'), 180, 80, 23, '#fff', { lw: 6 });
         else if (phase === 'look') A.text(c, L('よく みてね'), 180, 80, 23, '#fff', { lw: 6 });
         else if (phase !== 'wait') A.text(c, ask, 180, 80, 22, '#fff', { lw: 6 });
@@ -122,7 +124,7 @@
         c.restore();
         // ケロはかせ keeps an eye on the cards
         c.save(); c.translate(56, 360); c.scale(0.5, 0.5);
-        D.critter(c, { x: 0, y: 0, t: clock, kind: 'frog', look: { x: 240, y: -200 }, mode: phase === 'after' && q && ch.btns[q.right].classList.contains('ok') ? 'happy' : 'idle', mt: pt, wear: A.hakase });
+        D.critter(c, { x: 0, y: 0, t: clock, kind: 'frog', look: { x: 240, y: -200 }, mode: phase === 'after' && q && ch.btns[q.right].classList.contains('ok') ? 'happy' : 'idle', mt: pt, wear: p.oni ? A.hakaseOni : A.hakase });
         c.restore();
       },
       peek: function () { return phase === 'ask' ? g.qs[j].right : null; },   // for playtesting
@@ -133,17 +135,23 @@
   T.register({
     id: 'sakki', name: 'さっきの え', orig: '直前写真', kind: 'count', pool: 'pics',
     help: 'えが 1まいずつ でてくるよ\nひとつ まえに でた えを\nしたから えらんでね！',
+    oniHelp: '2つ まえの えを えらんでね！\nあいだの えに だまされないでね',
+    oniHelpA: '3つ まえの えを えらんでね！\nあいだの えに だまされないでね',
     levels: {
       e: { mode: 'now', q: 10, k: 3, show: 2.0 },
       n: { mode: 'prev', q: 10, k: 3 },
       h: { mode: 'prev', q: 10, k: 4, trick: true },
+      o: { mode: 'prev2', q: 10, k: 4, trick: true },
       ae: { mode: 'prev', q: 12, k: 4, trick: true },
       a: { mode: 'prev2', q: 12, k: 4, trick: true },
       ah: { mode: 'prev2', q: 15, k: 5, trick: true, trick2: true },
-      practice: { q: 3 }
+      ao: { mode: 'prev3', q: 15, k: 5, trick: true, trick2: true },
+      practice: { q: 3 },
+      practiceO: { mode: 'prev2', q: 3 },
+      practiceAO: { mode: 'prev3', q: 3 }
     },
-    ranks: { e: [10, 9, 8, 7, 5, 3], n: [10, 9, 8, 7, 5, 3], h: [10, 9, 8, 7, 5, 3],
-      ae: [12, 11, 10, 8, 6, 4], a: [12, 11, 10, 8, 6, 4], ah: [15, 14, 12, 10, 8, 5] },
+    ranks: { e: [10, 9, 8, 7, 5, 3], n: [10, 9, 8, 7, 5, 3], h: [10, 9, 8, 7, 5, 3], o: [10, 9, 8, 7, 5, 3],
+      ae: [12, 11, 10, 8, 6, 4], a: [12, 11, 10, 8, 6, 4], ah: [15, 14, 12, 10, 8, 5], ao: [15, 14, 12, 10, 8, 5] },
     gen: gen,
     start: start,
     icon: function (c, t) {

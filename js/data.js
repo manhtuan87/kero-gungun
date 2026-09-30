@@ -48,15 +48,20 @@
     { id: 'restraint', name: 'がまん', tests: ['janken'], good: 'がまんが とくい だね！' }
   ];
 
-  // The grown-ups' three levels (おとな) are near the original game's stages; only grown-up users see them.
+  // The grown-ups' levels (おとな) are near the original game's stages; only grown-up users see them.
+  // oni: おに (鬼モード, 2026-09-30) — the hardest, with a new twist in every training; it opens with ★3 at that level
+  // (or with ONI_STAMPS stamps). The trainings play it with params.oni (their levels.o / levels.ao).
   var LEVELS = [
     { id: 'e', name: 'かんたん', dots: 1 },
     { id: 'n', name: 'ふつう', dots: 2 },
     { id: 'h', name: 'むずかしい', dots: 3 },
+    { id: 'o', name: 'おに', dots: 0, oni: 'h' },
     { id: 'ae', name: 'おとな かんたん', short: 'かんたん', dots: 1, adult: true },
     { id: 'a', name: 'おとな ふつう', short: 'ふつう', dots: 2, adult: true },
-    { id: 'ah', name: 'おとな むずかしい', short: 'むずかしい', dots: 3, adult: true }
+    { id: 'ah', name: 'おとな むずかしい', short: 'むずかしい', dots: 3, adult: true },
+    { id: 'ao', name: 'おとな おに', short: 'おに', dots: 0, adult: true, oni: 'ah' }
   ];
+  var ONI_STAMPS = 20;
 
   // Pictures (drawn in pics.js). The names are the words of ことば つくり.
   var PICS = [
@@ -131,6 +136,8 @@
     checkDone: 'きょうの チェックは できたね！ トレーニングも やってみよう',
     enough: 'きょうは たくさん がんばったね！ つづきは また あした！',
     newTraining: 'あたらしい トレーニングが ふえたよ！',
+    newOni: '「おに」で あそべるように なったよ！ ちょうせん してみてね',
+    oniGood: ['おにを のりこえたね！ すごい！', 'おにも へっちゃら だね！'],   // (a good result at おに)
     newSong: 'ピアノの あたらしい きょくが ふえたよ！',
     best: ['すごい！ いままでで いちばんだよ！', 'じこベスト！ やったね！'],
     first1: ['はじめての きろく だね！', 'よく できました！'],
@@ -142,7 +149,7 @@
   };
 
   return {
-    ANIMALS: ANIMALS, CATS: CATS, TRAININGS: TRAININGS, CHECK: CHECK, LEVELS: LEVELS,
+    ANIMALS: ANIMALS, CATS: CATS, TRAININGS: TRAININGS, CHECK: CHECK, LEVELS: LEVELS, ONI_STAMPS: ONI_STAMPS,
     PICS: PICS, KANA: KANA, SONGS: SONGS, SCALE: SCALE, KEYS: KEYS, LINES: LINES
   };
 }));

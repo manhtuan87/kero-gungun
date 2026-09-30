@@ -1,6 +1,7 @@
 /* ジャンプで タッチ (the original: 二重課題) — two things at once: the partner runs along the top,
    press ジャンプ to hop over rocks and mushrooms, and at the same time touch the biggest number below.
-   Bumping into a rock only makes the partner trip; the game always lasts the same time. */
+   Bumping into a rock only makes the partner trip; the game always lasts the same time.
+   おに: birds fly in too, just above the partner's head — jumping then bumps into the bird (stay down and it flies over). */
 (function (T) {
   'use strict';
   var U = T.U, G = typeof window !== 'undefined' ? window : {};
@@ -46,17 +47,24 @@
         if (hero.y >= 0) hero.vy = 0;
         hero.trip = Math.max(0, hero.trip - dt);
         spawn -= dt;
-        if (spawn <= 0) { obs.push({ x: 390, kind: Math.random() < 0.5 ? 'rock' : 'mushroom', hit: false, passed: false }); spawn = p.gap * (0.8 + Math.random() * 0.4); }
+        if (spawn <= 0) {
+          // (おに: now and then a bird, never two in a row)
+          var last = obs[obs.length - 1], bird = p.birds && Math.random() < p.birds && !(last && last.kind === 'bird');
+          obs.push({ x: 390, kind: bird ? 'bird' : Math.random() < 0.5 ? 'rock' : 'mushroom', hit: false, passed: false, seed: Math.random() * 6 });
+          spawn = p.gap * (0.8 + Math.random() * 0.4);
+        }
         obs.forEach(function (o) {
           o.x -= p.speed * dt;
           var near = o.x - HERO_X < 22 && o.x - HERO_X > -8;   // (landing just behind a rock that was jumped over is fine)
-          if (near && !o.hit && hero.y > -26) { o.hit = true; stats.hit++; hero.trip = 0.6; api.sfx('bump'); api.mark('batsu', HERO_X, GROUND - 40, 18); }
+          // a rock or a mushroom trips the partner on the ground; a bird bumps into it in the air
+          var bump = o.kind === 'bird' ? hero.y < -26 : hero.y > -26;
+          if (near && !o.hit && bump) { o.hit = true; stats.hit++; hero.trip = 0.6; api.sfx('bump'); api.mark('batsu', HERO_X, GROUND - 40, 18); }
           if (!o.passed && o.x < HERO_X - 22) { o.passed = true; if (!o.hit) { stats.over++; api.burst(HERO_X, GROUND - 30, 5, '#fff6a8'); } }
         });
         obs = obs.filter(function (o) { return o.x > -40; });
         // hints while practising
         if (p.practice) {
-          var danger = obs.some(function (o) { return !o.passed && o.x - HERO_X < 120 && o.x > HERO_X; });
+          var danger = obs.some(function (o) { return !o.passed && o.kind !== 'bird' && o.x - HERO_X < 120 && o.x > HERO_X; });
           jumpBtn.hint(danger);
           if (!danger && cur && cur.t > 1.5) {
             var big = Math.max.apply(null, cur.nums), idx = cur.nums.indexOf(big), sp = SPOTS[cur.nums.length][idx];
@@ -76,7 +84,11 @@
         c.fillStyle = '#a4e384'; c.fillRect(10, GROUND, 340, 30);
         c.strokeStyle = 'rgba(90,150,60,.5)'; c.lineWidth = 3;
         for (var gx = -((t * p.speed) % 40); gx < 360; gx += 40) { c.beginPath(); c.moveTo(gx + 10, GROUND + 10); c.lineTo(gx + 22, GROUND + 10); c.stroke(); }
-        obs.forEach(function (o) { if (o.kind === 'rock') A.rock(c, o.x, GROUND, 1); else A.mushroom(c, o.x, GROUND, 0.9); });
+        obs.forEach(function (o) {
+          if (o.kind === 'rock') A.rock(c, o.x, GROUND, 1);
+          else if (o.kind === 'bird') A.bird(c, o.x, GROUND - 84 + Math.sin(clock * 5 + o.seed) * 4, 1.3, clock, { color: A.BIRDS[1], dir: -1, flap: clock * 22 + o.seed });
+          else A.mushroom(c, o.x, GROUND, 0.9);
+        });
         var bob = hero.y === 0 && hero.trip === 0 ? -Math.abs(Math.sin(clock * 12)) * 4 : 0;
         c.save(); c.translate(HERO_X, GROUND + hero.y + bob); c.rotate(hero.trip > 0 ? Math.sin(hero.trip * 20) * 0.3 : 0); c.scale(0.4, 0.4);
         D.critter(c, { x: 0, y: -52, t: clock, kind: api.partner, noSeat: true, look: { x: 300, y: 0 }, mode: hero.trip > 0 ? 'sad' : 'idle', mt: 0.2 });
@@ -109,8 +121,8 @@
       },
       peek: function () {   // for playtesting: jump when a rock is close, otherwise touch the biggest number
         if (phase !== 'play') return null;
-        var danger = obs.some(function (o) { return !o.passed && o.x - HERO_X < 70 && o.x - HERO_X > 30; });
-        if (danger) return { jump: true };
+        var danger = obs.some(function (o) { return !o.passed && o.kind !== 'bird' && o.x - HERO_X < 70 && o.x - HERO_X > 30; });
+        if (danger) return { jump: true };   // (a bird: just keep running)
         if (!cur) return null;
         var idx = cur.nums.indexOf(Math.max.apply(null, cur.nums)), sp = SPOTS[cur.nums.length][idx];
         return { x: sp[0], y: sp[1] };
@@ -123,6 +135,7 @@
   T.register({
     id: 'jump', name: 'ジャンプで タッチ', orig: '二重課題', kind: 'count',
     help: 'いしが きたら ジャンプ！\nおなじ ときに したの おおきい かずを\nタッチしてね。ふたつ いっしょに できるかな？',
+    oniHelp: 'とりも とんで くるよ。\nとりの ときは ジャンプしないでね！',
     levels: {
       e: { dur: 40, gap: 4.0, k: 2, max: 5, speed: 120 },
       n: { dur: 40, gap: 3.0, k: 3, max: 9, speed: 135 },
@@ -130,10 +143,14 @@
       ae: { dur: 40, gap: 2.2, k: 3, max: 99, speed: 150 },
       a: { dur: 40, gap: 1.8, k: 3, max: 99, speed: 170 },
       ah: { dur: 40, gap: 1.5, k: 3, max: 999, speed: 190 },
-      practice: { dur: 18 }
+      practice: { dur: 18 },
+      o: { dur: 40, gap: 2.2, k: 3, max: 20, speed: 150, birds: 0.3 },
+      ao: { dur: 40, gap: 1.5, k: 3, max: 999, speed: 190, birds: 0.35 },
+      practiceO: { dur: 18, birds: 0.4 }
     },
     ranks: {
-      e: [22, 19, 16, 13, 10, 6], n: [22, 19, 16, 13, 10, 6], h: [24, 21, 17, 14, 10, 6], ae: [30, 26, 22, 17, 12, 7], a: [34, 29, 24, 19, 14, 8], ah: [38, 32, 27, 21, 15, 9]
+      e: [22, 19, 16, 13, 10, 6], n: [22, 19, 16, 13, 10, 6], h: [24, 21, 17, 14, 10, 6], o: [24, 21, 17, 14, 10, 6],
+      ae: [30, 26, 22, 17, 12, 7], a: [34, 29, 24, 19, 14, 8], ah: [38, 32, 27, 21, 15, 9], ao: [38, 32, 27, 21, 15, 9]
     },
     gen: gen,
     start: start,

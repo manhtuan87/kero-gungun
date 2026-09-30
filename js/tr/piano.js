@@ -2,7 +2,9 @@
    by pitch, like a simple score. かんたん lights up the next key. The keys are always in colour; at
    むずかしい and おとな かんたん the notes above are white, so their names have to be read. From おとな ふつう on
    the notes stand on a real staff without names, as in the original's score; おとな むずかしい has no names on the keys either.
-   When the song is done, the whole song plays by itself as a reward. */
+   When the song is done, the whole song plays by itself as a reward.
+   おに: the notes come in groups (children 3, grown-ups 5): a group shows for a moment and then hides, and is played
+   from memory; a wrong key shows it again for a moment. */
 (function (T) {
   'use strict';
   var U = T.U, G = typeof window !== 'undefined' ? window : {};
@@ -42,7 +44,7 @@
     for (var i = 0; i < DATA.SONGS.length; i++) if (DATA.SONGS[i].id === id) return DATA.SONGS[i];
     return DATA.SONGS[0];
   }
-  // p: { song, repeat }
+  // p: { song, repeat }; おに: memo (notes in a group), look (s a group shows)
   function gen(p) {
     var song = songOf(p.song), notes = parse(song.notes), all = [];
     for (var r = 0; r < (p.repeat || 1); r++) all = all.concat(notes);
@@ -53,6 +55,9 @@
     var D = G.Draw, A = G.Art;
     var g = gen(p), notes = g.notes, i = 0, time = 0, mistakes = 0, phase = 'wait', pt = 0, since = 0, scroll = 0;
     var pressed = [0, 0, 0, 0, 0, 0, 0, 0], shake = [0, 0, 0, 0, 0, 0, 0, 0], auto = null, hak = { mode: 'idle', mt: 0 };
+    var group = 0, lookT = p.memo ? p.look : 0;   // (おに: the first note of the group now, and how long it still shows)
+    function groupEnd() { return Math.min(notes.length, group + p.memo); }
+    function hidden(j) { return p.memo && phase === 'play' && lookT <= 0 && j >= i && j < groupEnd(); }
 
     function noteY(k) { return 300 - k * (p.staff ? 18 : 21); }   // (on a staff the steps are smaller, so its five lines fit)
     function play(k) {
@@ -61,6 +66,7 @@
       if (phase !== 'play') return;
       if (k === notes[i].k) {
         i++; since = 0;
+        if (p.memo && i >= groupEnd() && i < notes.length) { group = i; lookT = p.look; }   // (おに: the next group shows)
         api.burst(110, noteY(k), 5, KEY_COLORS[k]);
         if (i >= notes.length) {
           phase = 'bravo'; pt = 0;
@@ -72,6 +78,7 @@
         mistakes++;
         shake[k] = 0.3;
         api.sfx('ng');   // (the key still sounds; a right key's own note is its good sound)
+        if (p.memo) lookT = Math.max(lookT, 1.2);   // (おに: the group shows again for a moment)
       }
     }
     function startAuto() {
@@ -92,6 +99,7 @@
         if (!playing) return;
         if (phase === 'play') {
           time += dt; since += dt;
+          if (p.memo) lookT = Math.max(0, lookT - dt);
         } else if (phase === 'bravo' && pt > 1.2) startAuto();
         else if (phase === 'auto') {
           auto.forEach(function (n) {
@@ -105,7 +113,8 @@
         }
       },
       draw: function (c, clock) {
-        A.text(c, g.song.name, 180, 84, 22, '#fff', { lw: 6 });
+        if (p.memo && phase === 'play') A.text(c, L(lookT > 0 ? 'おぼえてね！' : 'ひいてね！'), 180, 84, 24, lookT > 0 ? '#fff06a' : '#fff', { lw: 7 });
+        else A.text(c, g.song.name, 180, 84, 22, '#fff', { lw: 6 });
         // the road of notes
         D.roundRect(c, 12, 104, 336, 222, 26); D.paint(c, 'rgba(255,255,255,.82)', D.INK, 3);
         c.save(); D.roundRect(c, 12, 104, 336, 222, 26); c.clip();
@@ -115,6 +124,12 @@
         var X0 = 110, STEP = 58;
         for (var j = Math.max(0, i - 2); j < Math.min(notes.length, i + 6); j++) {
           var n = notes[j], x = X0 + (j - scroll) * STEP, y = noteY(n.k), past = j < i;
+          if (p.memo && phase === 'play' && j >= groupEnd()) continue;   // (おに: the next group is not shown yet)
+          if (hidden(j)) {   // (おに: a hidden note: where it is in the order, not how high)
+            D.circle(c, x, 215, 19); D.paint(c, 'rgba(255,255,255,.7)', 'rgba(90,56,37,.35)', 3);
+            A.text(c, '？', x, 216, 22, 'rgba(90,56,37,.5)', { stroke: false });
+            continue;
+          }
           c.save(); c.globalAlpha = past ? 0.35 : 1;
           if (p.staff) staffNote(c, D, n, x, y, p.colors);
           else {
@@ -126,7 +141,7 @@
         }
         c.restore();
         // ケロちゃん points at the next note
-        if (phase === 'play' && notes[i]) {
+        if (phase === 'play' && notes[i] && !hidden(i)) {
           var ny = noteY(notes[i].k);
           c.save(); c.translate(X0 + (i - scroll) * STEP, ny - (p.staff && notes[i].k < 6 ? 70 : 44) + Math.sin(clock * 5) * 3); c.scale(0.28, 0.28);
           D.critter(c, { x: 0, y: -40, t: clock, kind: 'frog', noSeat: true, look: { x: 0, y: 200 }, mode: 'idle' });
@@ -148,7 +163,7 @@
           if (!p.bare) noteName(c, A, D, k, kx + KEY_W / 2 + sx, KEY_Y + KEY_H - 24 + (down ? 4 : 0), 21, true);
         }
         c.save(); c.translate(318, 386); c.scale(0.42, 0.42);
-        D.critter(c, { x: 0, y: 0, t: clock, kind: 'frog', look: { x: -300, y: 0 }, mode: hak.mode, mt: hak.mt, wear: A.hakase, noSeat: true });
+        D.critter(c, { x: 0, y: 0, t: clock, kind: 'frog', look: { x: -300, y: 0 }, mode: hak.mode, mt: hak.mt, wear: p.oni ? A.hakaseOni : A.hakase, noSeat: true });
         c.restore();
       },
       down: function (q) {
@@ -164,6 +179,7 @@
   T.register({
     id: 'piano', name: 'ピアノ', orig: '名曲演奏', kind: 'time', songs: true,
     help: 'うえの おんぷと おなじ けんばんを\nじゅんばんに おしてね！\nさいごに きょくを ぜんぶ きけるよ',
+    oniHelp: 'がくふは すこし みたら きえるよ。\nおぼえて ひいてね！',
     // colors: the notes above in the keys' colours (the keys themselves always are); staff: notes on a staff, no names;
     // bare: no names on the keys
     levels: {
@@ -173,13 +189,19 @@
       ae: { glow: false, colors: false },
       a: { glow: false, colors: false, staff: true },
       ah: { glow: false, colors: false, staff: true, bare: true, repeat: 2 },
-      practice: { song: 'scale', glow: true, colors: true }
+      practice: { song: 'scale', glow: true, colors: true },
+      o: { glow: false, colors: true, memo: 3, look: 3.0 },
+      ao: { glow: false, colors: false, staff: true, bare: true, memo: 5, look: 2.0 },
+      practiceO: { song: 'scale', glow: false, colors: true, memo: 2, look: 4.0 },
+      practiceAO: { song: 'scale', glow: false, colors: false, staff: true, bare: false, memo: 3, look: 3.0 }
     },
     // seconds per note, including 2 seconds for each wrong key
     ranks: {
       e: [0.55, 0.7, 0.9, 1.15, 1.5, 2.0], n: [0.7, 0.9, 1.1, 1.4, 1.8, 2.4],
       h: [0.8, 1.0, 1.25, 1.6, 2.0, 2.7],
-      ae: [0.5, 0.65, 0.8, 1.0, 1.3, 1.7], a: [0.7, 0.85, 1.05, 1.3, 1.65, 2.2], ah: [0.8, 1.0, 1.25, 1.55, 2.0, 2.7]
+      o: [1.3, 1.6, 2.0, 2.5, 3.2, 4.2],
+      ae: [0.5, 0.65, 0.8, 1.0, 1.3, 1.7], a: [0.7, 0.85, 1.05, 1.3, 1.65, 2.2], ah: [0.8, 1.0, 1.25, 1.55, 2.0, 2.7],
+      ao: [1.0, 1.25, 1.55, 1.95, 2.5, 3.3]
     },
     gen: gen, parse: parse,
     start: start,

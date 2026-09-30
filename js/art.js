@@ -87,6 +87,23 @@ var Art = (function () {
     ctx.restore();
   }
 
+  // おに: ケロはかせ with two little oni horns sticking out from under his cap (drawn first, so the cap sits over them).
+  function hakaseOni(ctx, kind) {
+    if (kind !== 'frog') return;
+    ctx.save();
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    for (var k = -1; k <= 1; k += 2) {
+      ctx.save(); ctx.translate(-3 + k * 25, -46); ctx.rotate(k * 0.42);
+      ctx.beginPath(); ctx.moveTo(-8.5, 6); ctx.quadraticCurveTo(-7, -12, k * 3, -27); ctx.quadraticCurveTo(7, -12, 8.5, 6); ctx.closePath();
+      paint(ctx, '#fff1b3', INK, 3);
+      ctx.beginPath(); ctx.moveTo(-6.4, -4); ctx.quadraticCurveTo(0, -7, 6.4, -4); paint(ctx, null, '#f0a93a', 3);
+      ctx.beginPath(); ctx.moveTo(-4.6, -13); ctx.quadraticCurveTo(k * 1.2, -15.5, 4.8, -13); paint(ctx, null, '#f0a93a', 2.6);
+      ctx.restore();
+    }
+    ctx.restore();
+    hakase(ctx, kind);
+  }
+
   // ---------------------------------------------------------------- the rank animals (feet at y = 0, facing right)
 
   function snail(ctx, t, run) {
@@ -652,7 +669,7 @@ var Art = (function () {
   return {
     FONT: FONT, BALLOONS: BALLOONS, BIRDS: BIRDS, SKIN: SKIN,
     blob: blob, eyeDot: eyeDot, smile: smile, blush: blush, stroke: stroke, tube: tube, text: text, shade: shade,
-    hakase: hakase, animal: animal, jankenHand: jankenHand, stamp: stamp,
+    hakase: hakase, hakaseOni: hakaseOni, animal: animal, jankenHand: jankenHand, stamp: stamp,
     balloon: balloon, pad: pad, house: house, bird: bird, butterfly: butterfly, ladybug: ladybug, bee: bee,
     cube: cube, rock: rock, mushroom: mushroom, chalkboard: chalkboard, card: card, numberEgg: numberEgg,
     maru: maru, batsu: batsu

@@ -13,11 +13,15 @@ const T = global.Trainings, U = T.U;
 let bad = 0, checks = 0;
 function check(ok, msg) { checks++; if (!ok) { bad++; if (bad < 60) console.log('  NG ' + msg); } }
 const RUNS = 300;
-function levelsOf(tr) { return Object.keys(tr.levels).filter(l => l !== 'practice'); }
+// (practice, practiceO and practiceAO are the practice runs of the levels, not levels of their own)
+function levelsOf(tr) { return Object.keys(tr.levels).filter(l => !/^practice/.test(l)); }
+const ONI = ['o', 'ao'];
 function params(tr, lv, practice) {
-  const p = Object.assign({}, tr.levels[lv]);
-  if (practice) Object.assign(p, tr.levels.practice || {}, { practice: true });
-  p.adult = ['ae', 'a', 'ah', 'testA'].indexOf(lv) >= 0;
+  const p = Object.assign({}, tr.levels[lv]), oni = ONI.includes(lv);
+  const pr = oni ? (lv === 'ao' && tr.levels.practiceAO) || tr.levels.practiceO : tr.levels.practice;
+  if (practice) Object.assign(p, pr || tr.levels.practice || {}, { practice: true });
+  p.adult = ['ae', 'a', 'ah', 'ao', 'testA'].indexOf(lv) >= 0;
+  p.oni = oni;
   return p;
 }
 function eachParams(tr, fn) {
@@ -40,7 +44,8 @@ T.list.forEach(tr => {
     check(!!tr.levels[lv], tr.id + ' ranks for a level it does not have: ' + lv);
   });
   if (!tr.versusOnly) levelsOf(tr).forEach(lv => check(!!tr.ranks[lv], tr.id + ' level ' + lv + ' has no ranks'));
-  if (!tr.checkOnly && !tr.versusOnly) ['e', 'n', 'h', 'ae', 'a', 'ah'].forEach(lv => check(!!tr.levels[lv], tr.id + ' misses level ' + lv));
+  if (!tr.checkOnly && !tr.versusOnly) ['e', 'n', 'h', 'o', 'ae', 'a', 'ah', 'ao', 'practiceO'].forEach(lv => check(!!tr.levels[lv], tr.id + ' misses level ' + lv));
+  if (!tr.checkOnly && !tr.versusOnly) check(typeof tr.oniHelp === 'string' && tr.oniHelp.length > 10, tr.id + ' needs the explanation of its おに');
 });
 
 // ---------------------------------------------------------------- every question maker
@@ -54,15 +59,25 @@ run('keisan', (tr, p, lv, r) => {
   const qs = tr.gen(p, r);
   check(qs.length === p.n, `keisan ${lv} count`);
   qs.forEach((q, i) => {
-    const v = q.op === '＋' ? q.a + q.b : q.op === '−' ? q.a - q.b : q.a * q.b;
-    check(v === q.ans, `keisan ${lv} wrong answer ${q.a}${q.op}${q.b}=${q.ans}`);
-    if (p.adult) check(q.ans >= 1 && q.ans <= 99, `keisan ${lv} grown-up answer ${q.ans}`);
+    const f = (x, op, y) => op === '＋' ? x + y : op === '−' ? x - y : op === '×' ? x * y : x / y;
+    const m = f(q.a, q.op, q.b), v = q.c != null ? f(m, q.op2, q.c) : m;
+    check(v === q.ans, `keisan ${lv} wrong answer ${q.a}${q.op}${q.b}${q.c != null ? q.op2 + q.c : ''}=${q.ans}`);
+    check(!p.oni || (p.adult ? p.hard : p.three), `keisan ${lv}: おに has its own sums`);
+    if (p.three) {   // (おに, children: three numbers, every step from 0 to 10)
+      check(q.c != null && m >= 0 && m <= 10 && q.ans >= 0 && q.ans <= 10 && [q.a, q.b, q.c].every(x => x >= 1 && x <= 9), `keisan ${lv} three numbers ${q.a}${q.op}${q.b}${q.op2}${q.c}`);
+    } else if (p.hard) {   // (おに, grown-ups: carries, borrows, two-digit times one-digit, even divisions)
+      check(Number.isInteger(q.ans) && q.ans >= 1 && q.ans <= 999, `keisan ${lv} hard answer ${q.ans}`);
+      if (q.op === '＋') check(q.a % 10 + q.b % 10 >= 10 && q.a >= 10 && q.b >= 10, `keisan ${lv} a sum without a carry`);
+      if (q.op === '−') check(q.a % 10 < q.b % 10 && q.b >= 10, `keisan ${lv} a take-away without a borrow`);
+      if (q.op === '×') check(q.a >= 10 && q.b >= 2 && q.b <= 9, `keisan ${lv} times`);
+      if (q.op === '÷') check(q.a % q.b === 0 && q.b >= 2, `keisan ${lv} division`);
+    } else if (p.adult) check(q.ans >= 1 && q.ans <= 99, `keisan ${lv} grown-up answer ${q.ans}`);
     else {
       check(q.ans >= 1 && q.ans <= 10 && q.ans <= p.max, `keisan ${lv} answer ${q.ans} out of range`);
       check(q.a >= 1 && q.b >= 1, `keisan ${lv} uses 0`);
       if (p.ops === '+') check(q.op === '＋', `keisan ${lv} subtraction at a plus-only level`);
     }
-    if (i) check(!(qs[i - 1].a === q.a && qs[i - 1].b === q.b && qs[i - 1].op === q.op), `keisan ${lv} same sum twice in a row`);
+    if (i) check(!(qs[i - 1].a === q.a && qs[i - 1].b === q.b && qs[i - 1].op === q.op && qs[i - 1].c === q.c && qs[i - 1].op2 === q.op2), `keisan ${lv} same sum twice in a row`);
   });
 });
 
@@ -73,7 +88,8 @@ run('ookii', (tr, p, lv, r) => {
     const ns = rd.balloons.map(b => b.n);
     check(new Set(ns).size === p.k && ns.length === p.k, `ookii ${lv} numbers not different`);
     check(ns.every(n => n >= 1 && n <= p.max), `ookii ${lv} number out of range`);
-    check(rd.answer === Math.max(...ns), `ookii ${lv} answer`);
+    check(rd.answer === (rd.small ? Math.min(...ns) : Math.max(...ns)), `ookii ${lv} answer`);
+    check(!rd.small || p.flip, `ookii ${lv} the smallest is asked below おに`);
     rd.balloons.forEach((a, i) => rd.balloons.forEach((b, j) => {
       if (i < j) check(dist(a, b) >= (a.r + b.r) * 0.92, `ookii ${lv} balloons overlap (${Math.round(dist(a, b))} < ${a.r + b.r})`);
     }));
@@ -86,8 +102,10 @@ run('junban', (tr, p, lv, r) => {
   boards.forEach(b => {
     check(b.length === p.n, `junban ${lv} pads`);
     check(new Set(b.map(q => q.label)).size === p.n, `junban ${lv} labels repeat`);
-    b.forEach((a, i) => b.forEach((c, j) => { if (i < j) check(dist(a, c) >= 60, `junban ${lv} pads overlap (${Math.round(dist(a, c))})`); }));
-    b.forEach(a => check(a.x >= 40 && a.x <= 320 && a.y >= 146 && a.y <= 556, `junban ${lv} pad outside the pond`));
+    // (pads are 29 px round; a drifting board has a little less room, so its pads may come to 59.8 px)
+    b.forEach((a, i) => b.forEach((c, j) => { if (i < j) check(dist(a, c) >= (p.drift ? 59.5 : 60), `junban ${lv} pads overlap (${Math.round(dist(a, c))})`); }));
+    b.forEach(a => check(a.x >= 40 + (p.drift || 0) && a.x <= 320 - (p.drift || 0) && a.y >= 146 + (p.drift || 0) && a.y <= 556 - (p.drift || 0), `junban ${lv} pad (with its drift) outside the pond`));
+    check(!p.oni || p.drift > 0, `junban ${lv}: おに drifts`);
     check(Math.hypot(b[0].x - 180, b[0].y - 604) > 0, 'junban start');
   });
   if (p.seq === 'alt') check(tr.labels(p).slice(0, 4).join('') === '1あ2い', 'junban alternating labels');
@@ -101,6 +119,8 @@ run('patto', (tr, p, lv, r) => {
     check(rd.cells.length === m && new Set(rd.cells).size === m, `patto ${lv} cells`);
     check(rd.cells.every(c => c >= 0 && c < 20), `patto ${lv} cell range`);
     if (p.nums) check(rd.nums.length === m && new Set(rd.nums).size === m && rd.nums.every(v => v >= 1 && v <= p.nums), `patto ${lv} numbers`);
+    if (p.swaps) check(new Set(rd.colors).size === 1, `patto ${lv}: eggs that change places must all have one colour`);
+    check(!p.oni || p.swaps > 0, `patto ${lv}: おに changes places`);
   });
 });
 
@@ -109,14 +129,18 @@ run('nannin', (tr, p, lv, r) => {
   check(qs.length === p.q, `nannin ${lv} count`);
   qs.forEach(q => {
     check(q.events.length > 0, `nannin ${lv} no events`);
-    let inside = [];
+    const two = p.houses === 2, inside = two ? [[], []] : [[]];
     const ev = q.events.slice().sort((a, b) => a.at - b.at);
     ev.forEach(e => {
-      if (e.dir === 'in') inside.push(e.who);
-      else { const k = inside.indexOf(e.who); check(k >= 0, `nannin ${lv} someone leaves who is not inside`); if (k >= 0) inside.splice(k, 1); }
-      check(inside.length <= 9, `nannin ${lv} too many inside`);
+      const ins = inside[e.house || 0];
+      check(two ? e.house === 0 || e.house === 1 : !e.house, `nannin ${lv} a house that is not there`);
+      if (two) check(e.side === (e.house ? 1 : -1), `nannin ${lv} a friend of one house comes from the other side`);
+      if (e.dir === 'in') ins.push(e.who);
+      else { const k = ins.indexOf(e.who); check(k >= 0, `nannin ${lv} someone leaves who is not inside`); if (k >= 0) ins.splice(k, 1); }
+      check(ins.length <= (two ? 6 : 9), `nannin ${lv} too many inside`);
     });
-    check(inside.length === q.answer, `nannin ${lv} answer ${q.answer} but ${inside.length} inside`);
+    check(inside[q.ask || 0].length === q.answer, `nannin ${lv} answer ${q.answer} but ${inside[q.ask || 0].length} inside`);
+    check(!p.oni || two, `nannin ${lv}: おに has two houses`);
     if (!p.out) check(q.events.every(e => e.dir === 'in'), `nannin ${lv} someone leaves at a level without leaving`);
     check(q.answer <= 10, `nannin ${lv} answer above 10`);
   });
@@ -132,9 +156,11 @@ run('sakki', (tr, p, lv, r) => {
     if (p.trick && q.cur !== q.answer) check(q.choices.includes(q.cur), `sakki ${lv} trick missing`);
     if (!p.trick && q.cur !== q.answer) check(!q.choices.includes(q.cur), `sakki ${lv} shows the current picture`);
     if (g.back) check(q.cur !== q.answer, `sakki ${lv} the same picture twice in a row`);
+    if (p.trick2 && g.back === 3) check(q.choices.includes(g.seq[j + 1]) || g.seq[j + 1] === q.cur, `sakki ${lv} the picture in between is not a choice`);
   });
 });
 
+check(T.byId.sakki.levels.o.mode === 'prev2' && T.byId.sakki.levels.ao.mode === 'prev3', 'sakki: おに is two before (children) and three before (grown-ups)');
 run('janken', (tr, p, lv, r) => {
   const rs = tr.gen(p, r);
   check(rs.length === p.q, `janken ${lv} count`);
@@ -169,7 +195,12 @@ run('tori', (tr, p, lv, r) => {
     const birds = q.things.filter(t => t.bird).length;
     check(birds === q.answer, `tori ${lv} answer`);
     check(q.answer >= p.birds[0] && q.answer <= p.birds[1], `tori ${lv} bird count range`);
-    check(q.things.length === q.answer + p.others, `tori ${lv} others`);
+    check(q.things.length === q.answer + (q.flies || 0) + p.others, `tori ${lv} others`);
+    if (p.flies) {   // (おに: the butterflies are counted too; then the others are ladybugs and bees only)
+      check(q.things.filter(t => t.kind === 'butterfly').length === q.flies && q.flies >= p.flies[0] && q.flies <= p.flies[1], `tori ${lv} butterflies`);
+      check(q.things.filter(t => !t.bird && !t.fly).every(t => t.kind === 'ladybug' || t.kind === 'bee'), `tori ${lv} a butterfly among the ones not counted`);
+      if (!p.adult) check(q.flies <= 10, `tori ${lv} butterflies above 10`);
+    } else check(q.flies == null, `tori ${lv} butterflies counted below おに`);
     q.things.forEach((a, i) => q.things.forEach((b, j) => { if (i < j) check(dist(a, b) >= 30, `tori ${lv} creatures on top of each other`); }));
     if (!p.adult) check(q.answer <= 10, `tori ${lv} answer above 10`);
   });
@@ -215,7 +246,7 @@ check(new Set(Data.PICS.map(x => x.id)).size === Data.PICS.length, 'picture ids 
       check(qs.length === p.q, `${lang} kotoba ${lv} count (${qs.length})`);
       qs.forEach(q => {
         check(q.word.length >= p.len[0] && q.word.length <= p.len[1] && q.word.length <= 7, `${lang} kotoba ${lv} word length`);
-        check(q.tiles.length === q.word.length + p.dummy && q.tiles.length <= 10, `${lang} kotoba ${lv} tiles`);
+        check(q.tiles.length === q.word.length + p.dummy && q.tiles.length <= (p.oni ? 12 : 10), `${lang} kotoba ${lv} tiles`);   // (おに: up to 3 rows of 5)
         const rest = q.tiles.slice();
         q.word.split('').forEach(ch => { const k = rest.indexOf(ch); check(k >= 0, `${lang} kotoba ${lv} letter missing`); if (k >= 0) rest.splice(k, 1); });
         rest.forEach(ch => check(!q.word.includes(ch), `${lang} kotoba ${lv} dummy letter in the word`));
@@ -334,6 +365,24 @@ console.log('save data');
   for (let d = 1; d <= 20; d++) C.addRun(s2, { id: 'keisan', level: 'e', kind: 'time', cuts, score: 50, text: '', today: '2026-11-' + String(d).padStart(2, '0') });
   check(Data.TRAININGS.every(t => C.isOpen(s2, t.id)) && Data.SONGS.every(g => C.songOpen(s2, g)) && !C.nextUnlock(s2), 'everything opens by 20 stamps');
   check(C.stampDays(C.udata(s2)).filter(x => x.big).length === 4, 'every 5th stamp is はなまる');
+  check(Data.TRAININGS.every(t => C.oniOpen(s2, t.id, 'o') && C.oniOpen(s2, t.id, 'ao')), '20 stamps open every おに');
+}
+{ // おに: ★3 at むずかしい (grown-ups: おとな むずかしい) opens it for that training; 20 stamps or the admin switch open all
+  const s4 = C.fresh(), hc = T.byId.patto.ranks.h;
+  check(!C.oniOpen(s4, 'patto', 'o') && C.oniOpen(s4, 'patto', 'h'), 'おに is closed at first');
+  const w2 = C.addRun(s4, { id: 'patto', level: 'h', kind: 'count', cuts: hc, score: 8, acc: 7 / 8, text: '', today: '2026-10-01' });
+  check(w2.stars === 2 && !C.oniOpen(s4, 'patto', 'o') && !w2.opened.oni.length, '★2 at むずかしい does not open おに');
+  const w3 = C.addRun(s4, { id: 'patto', level: 'h', kind: 'count', cuts: hc, score: 8, acc: 1, text: '', today: '2026-10-01' });
+  check(w3.stars === 3 && w3.opened.oni.length === 1 && w3.opened.oni[0].id === 'patto' && w3.opened.oni[0].lv === 'o' && C.oniOpen(s4, 'patto', 'o'), '★3 at むずかしい opens おに');
+  check(!C.oniOpen(s4, 'patto', 'ao') && !C.oniOpen(s4, 'keisan', 'o'), 'only おに of that training (おとな おに waits for おとな むずかしい)');
+  const w4 = C.addRun(s4, { id: 'patto', level: 'ah', kind: 'count', cuts: T.byId.patto.ranks.ah, score: 80, acc: 1, text: '', today: '2026-10-01' });
+  check(w4.opened.oni.length === 1 && w4.opened.oni[0].lv === 'ao', '★3 at おとな むずかしい opens おとな おに');
+  C.addRun(s4, { id: 'patto', level: 'o', kind: 'count', cuts: T.byId.patto.ranks.o, score: 5, acc: 5 / 8, text: '', today: '2026-10-01' });
+  check(C.sanitize(JSON.parse(JSON.stringify(s4))).data.u1.rec.patto.o.best === 5, 'the records of おに survive a save');
+  const s5 = C.fresh(); s5.all = true;
+  check(Data.TRAININGS.every(t => C.oniOpen(s5, t.id, 'o') && C.oniOpen(s5, t.id, 'ao')), 'the admin switch opens every おに');
+  const ck = C.addCheck(C.fresh(), { ranks: [4, 4, 4], tests: ['keisan', 'patto', 'janken'], today: '2026-10-01' });
+  check(Array.isArray(ck.opened.oni), 'the check tells which おに opened too');
 }
 
 console.log(`\n${checks} checks, ${bad ? bad + ' NG' : 'all OK'}`);

@@ -1,45 +1,57 @@
 /* なんにん いるかな？ (the original: 人数数え) — friends walk into ケロちゃん's house and out again.
-   At the end, how many are inside? The roof opens to show the answer. */
+   At the end, how many are inside? The roof opens to show the answer.
+   おに: two houses, left and right — friends go in and out of both, and only at the end does ケロはかせ say
+   which house he asks about. */
 (function (T) {
   'use strict';
   var U = T.U, G = typeof window !== 'undefined' ? window : {};
   var WHO = ['chick', 'rabbit', 'cat', 'dog'];
   var DOOR = { x: 180, y: 430 };
+  // おに: the two houses (smaller); the left one's friends come from the left, the right one's from the right
+  var HOUSES2 = [{ x: 94, s: 0.72, from: -1 }, { x: 266, s: 0.72, from: 1 }];
 
-  /* One question: events in time order. p: { start: [a, b], events: [a, b], out, speed, multi }
-     Each event: { at (seconds), dir: 'in' | 'out', who, side: -1 | 1 } */
+  /* One question: events in time order. p: { start: [a, b], events: [a, b], out, speed, multi }; おに: houses: 2
+     Each event: { at (seconds), dir: 'in' | 'out', who, side: -1 | 1, house: 0 | 1 }.
+     ask: the house asked about (0 with one house); answer: how many are in it; inside / insides: who is in it / in each. */
   function question(p, r) {
+    var two = p.houses === 2, cap = two ? 6 : 9;
     for (var tries = 0; tries < 50; tries++) {
-      var ev = [], inside = [], t = 0.3, step = 1.25 / p.speed, s = U.span(r, p.start), n = U.span(r, p.events);
-      for (var i = 0; i < s; i++) {           // the first ones go in quickly, one after another
-        var w0 = U.pick(r, WHO);
-        ev.push({ at: t, dir: 'in', who: w0, side: r() < 0.5 ? -1 : 1 });
-        inside.push(w0); t += step * 0.7;
-      }
-      if (s) t += step * 0.4;
+      var ev = [], inside = two ? [[], []] : [[]], t = 0.3, step = 1.25 / p.speed, n = U.span(r, p.events);
+      var side = function (h) { return two ? HOUSES2[h].from : r() < 0.5 ? -1 : 1; };
+      inside.forEach(function (ins, h) {
+        var s = U.span(r, p.start);
+        for (var i = 0; i < s; i++) {           // the first ones go in quickly, one after another
+          var w0 = U.pick(r, WHO);
+          ev.push({ at: t, dir: 'in', who: w0, side: side(h), house: h });
+          ins.push(w0); t += step * 0.7;
+        }
+      });
+      if (ev.length) t += step * 0.4;
       var ok = true;
       for (var e = 0; e < n; e++) {
         var group = p.multi && r() < 0.35 ? 2 : 1;
         for (var g = 0; g < group; g++) {
-          var out = p.out && inside.length > 0 && (inside.length >= 8 || r() < 0.45);
+          var h = two ? U.int(r, 0, 1) : 0, ins = inside[h];
+          var out = p.out && ins.length > 0 && (ins.length >= cap - 1 || r() < 0.45);
           if (out) {
-            var k = U.int(r, 0, inside.length - 1);
-            ev.push({ at: t + g * 0.18, dir: 'out', who: inside[k], side: r() < 0.5 ? -1 : 1 });
-            inside.splice(k, 1);
+            var k = U.int(r, 0, ins.length - 1);
+            ev.push({ at: t + g * 0.18, dir: 'out', who: ins[k], side: side(h), house: h });
+            ins.splice(k, 1);
           } else {
-            if (inside.length >= 9) { ok = false; break; }
+            if (ins.length >= cap) { ok = false; break; }
             var w = U.pick(r, WHO);
-            ev.push({ at: t + g * 0.18, dir: 'in', who: w, side: r() < 0.5 ? -1 : 1 });
-            inside.push(w);
+            ev.push({ at: t + g * 0.18, dir: 'in', who: w, side: side(h), house: h });
+            ins.push(w);
           }
         }
         if (!ok) break;
         t += step;
       }
       if (!ok) continue;
-      return { events: ev, answer: inside.length, inside: inside, end: t + 1.0 / p.speed };
+      var ask = two ? U.int(r, 0, 1) : 0;
+      return { events: ev, answer: inside[ask].length, inside: inside[ask], insides: inside, ask: ask, end: t + 1.0 / p.speed };
     }
-    return { events: [], answer: 0, inside: [], end: 1 };
+    return { events: [], answer: 0, inside: [], insides: [[], []].slice(0, p.houses === 2 ? 2 : 1), ask: 0, end: 1 };
   }
   function gen(p, r) { var out = []; for (var i = 0; i < p.q; i++) out.push(question(p, r)); return out; }
 
@@ -52,9 +64,9 @@
   }
 
   function start(api, p) {
-    var D = G.Draw, A = G.Art;
+    var D = G.Draw, A = G.Art, two = p.houses === 2;
     var qs = gen(p, api.rnd), qi = -1, Q = null, phase = 'wait', pt = 0, correct = 0, clock = 0;
-    var walkers = [], door = 0, roof = 0, verdict = null;
+    var walkers = [], doors = [0, 0], roof = 0, verdict = null;
     var pad = api.answerPad({ expect: function () { return Q ? Q.answer : 0; }, onAnswer: answer });
     pad.enable(false);
 
@@ -76,15 +88,17 @@
       pad.enable(false);
       phase = 'reveal'; pt = 0;
       verdict = v === Q.answer;
-      if (verdict) { correct++; api.ok(180, 300, 64); }
-      else { api.ng(180, 300, 54); api.say(L('こたえは {n}にん だよ', { n: Q.answer }), false); }
+      if (verdict) { correct++; api.ok(two ? HOUSES2[Q.ask].x : 180, 300, 64); }
+      else { api.ng(two ? HOUSES2[Q.ask].x : 180, 300, 54); api.say(L('こたえは {n}にん だよ', { n: Q.answer }), false); }
       api.progress(qi + 1, qs.length);
     }
 
     // Where a walker is: k = 0..1 along its walk (in: from the side to the door; out: the other way).
     function where(w) {
-      var k = w.e.dir === 'in' ? w.k : 1 - w.k, sx = DOOR.x + w.e.side * 230;
-      return { x: sx + (DOOR.x - sx) * k, y: DOOR.y, scale: k > 0.86 ? Math.max(0.2, 1 - (k - 0.86) / 0.14 * 0.8) : 1 };
+      var k = w.e.dir === 'in' ? w.k : 1 - w.k, dx = two ? HOUSES2[w.e.house].x : DOOR.x;
+      var sx = two ? (w.e.side < 0 ? -40 : 400) : DOOR.x + w.e.side * 230;
+      var sc = two ? HOUSES2[w.e.house].s : 1;
+      return { x: sx + (dx - sx) * k, y: DOOR.y, scale: (k > 0.86 ? Math.max(0.2, 1 - (k - 0.86) / 0.14 * 0.8) : 1) * (two ? 0.85 : 1), door: sc };
     }
 
     return {
@@ -92,25 +106,25 @@
       begin: next,
       update: function (dt, playing) {
         clock += dt; pt += dt;
-        var busy = false;
+        var busy = [false, false];
         walkers.forEach(function (w) {
           if (!playing && phase === 'watch') return;
           if (w.k < 0 && pt >= w.e.at) { w.k = 0; api.sfx('step'); }
           if (w.k >= 0 && w.k < 1) {
             w.k = Math.min(1, w.k + dt * p.speed / 1.1);
-            if (w.k > 0.8 && w.k < 1) busy = true;
+            if (w.k > 0.8 && w.k < 1) busy[w.e.house || 0] = true;
             if (w.k >= 1 && w.e.dir === 'in') api.sfx('door');
           }
-          if (w.e.dir === 'out' && w.k >= 0 && w.k < 0.25) busy = true;
+          if (w.e.dir === 'out' && w.k >= 0 && w.k < 0.25) busy[w.e.house || 0] = true;
         });
-        door += ((busy ? 1 : 0) - door) * Math.min(1, dt * 10);
+        doors = doors.map(function (d, h) { return d + ((busy[h] ? 1 : 0) - d) * Math.min(1, dt * 10); });
         if (phase === 'reveal' || phase === 'next') roof = Math.min(1, roof + dt * 2.5);
         else roof = Math.max(0, roof - dt * 3);
         if (!playing) return;
         if (phase === 'watch' && pt > Q.end) {
           phase = 'ask'; pt = 0;
           pad.enable(true);
-          api.speak(L('おうちの なかに なんにん いるかな？'));
+          api.speak(L(!two ? 'おうちの なかに なんにん いるかな？' : Q.ask ? 'みぎの おうちには なんにん？' : 'ひだりの おうちには なんにん？'));
           if (p.practice) pad.hint(Q.answer);
         } else if (phase === 'reveal' && pt > 2.2) { pad.hint(null); api.hush(); next(); }
       },
@@ -118,23 +132,31 @@
         // grass and path
         D.roundRect(c, -40, 440, 440, 40, 0); D.paint(c, '#9fdc7c');
         D.ellipse(c, 180, 438, 170, 10); D.paint(c, 'rgba(255,255,255,.45)');
-        var insideNow = [];
-        if (Q) walkers.forEach(function (w) { if ((w.e.dir === 'in' && w.k >= 1) || (w.e.dir === 'out' && w.k < 0)) insideNow.push(w.e.who); });
-        A.house(c, 180, 440, 1, door, roof, roof > 0.02 ? function (h) {
-          var list = Q && (phase === 'reveal' || phase === 'next') ? Q.inside : insideNow;
-          list.forEach(function (who, i) {
-            var col = i % 5, row = Math.floor(i / 5), n = Math.min(5, list.length - row * 5);
-            drawWho(h, D, who, (col - (n - 1) / 2) * 29, -12 - row * 46, 0.85, clock + i, false);
-          });
-        } : null);
+        var insideNow = [[], []];
+        if (Q) walkers.forEach(function (w) { if ((w.e.dir === 'in' && w.k >= 1) || (w.e.dir === 'out' && w.k < 0)) insideNow[w.e.house || 0].push(w.e.who); });
+        var houses = two ? HOUSES2 : [{ x: 180, s: 1 }];
+        houses.forEach(function (hs, h) {
+          A.house(c, hs.x, 440, hs.s, doors[h], roof, roof > 0.02 ? function (hc) {
+            var list = Q && (phase === 'reveal' || phase === 'next') ? Q.insides[h] : insideNow[h];
+            list.forEach(function (who, i) {
+              var col = i % 5, row = Math.floor(i / 5), n = Math.min(5, list.length - row * 5);
+              drawWho(hc, D, who, (col - (n - 1) / 2) * 29, -12 - row * 46, 0.85, clock + i, false);
+            });
+          } : null);
+        });
         walkers.forEach(function (w) {
           if (w.k < 0 || w.k >= 1) return;
           var q = where(w);
           drawWho(c, D, w.e.who, q.x, q.y, q.scale, clock, true);
         });
-        if (phase === 'ask') A.text(c, L('おうちの なかに なんにん？'), 180, 116, 24, '#fff', { lw: 7 });
+        if (two && Q && (phase === 'ask' || phase === 'reveal')) {   // (おに: the house asked about)
+          var ax = HOUSES2[Q.ask].x, bob = Math.sin(clock * 6) * 5;
+          c.beginPath(); c.moveTo(ax - 16, 196 + bob); c.lineTo(ax + 16, 196 + bob); c.lineTo(ax, 218 + bob); c.closePath();
+          D.paint(c, '#ffd23d', D.INK, 3);
+        }
+        if (phase === 'ask') A.text(c, L(!two ? 'おうちの なかに なんにん？' : Q.ask ? 'みぎの おうちには なんにん？' : 'ひだりの おうちには なんにん？'), 180, 116, two ? 21 : 24, '#fff', { lw: 7, max: 330 });
         else if (phase === 'reveal') A.text(c, L('こたえは {n}にん', { n: Q.answer }), 180, 116, 28, verdict ? '#ff8fc0' : '#6cc6ff', { lw: 7 });
-        else if (phase === 'watch') A.text(c, L('よく みててね！'), 180, 116, 24, '#fff', { lw: 7 });
+        else if (phase === 'watch') A.text(c, L(two ? 'どっちの おうちも よく みててね！' : 'よく みててね！'), 180, 116, two ? 21 : 24, '#fff', { lw: 7, max: 330 });
       },
       peek: function () { return phase === 'ask' ? Q.answer : null; },   // for playtesting
       end: function () {}
@@ -144,16 +166,23 @@
   T.register({
     id: 'nannin', name: 'なんにん いるかな？', orig: '人数数え', kind: 'count',
     help: 'おうちに はいったり でたり…\nさいごに おうちの なかに\nなんにん いるか こたえてね！',
+    oniHelp: 'おうちが 2つ あるよ。\nさいごに どっちの おうちか きくよ！',
     levels: {
       e: { q: 5, start: [0, 0], events: [3, 4], out: false, speed: 0.8, multi: false },
       n: { q: 5, start: [1, 3], events: [5, 6], out: true, speed: 1.0, multi: false },
       h: { q: 5, start: [2, 4], events: [7, 9], out: true, speed: 1.3, multi: true },
+      o: { q: 5, houses: 2, start: [1, 2], events: [8, 10], out: true, speed: 1.0, multi: false },
       ae: { q: 6, start: [1, 4], events: [8, 10], out: true, speed: 1.4, multi: true },
       a: { q: 6, start: [2, 5], events: [10, 14], out: true, speed: 1.8, multi: true },
       ah: { q: 6, start: [3, 6], events: [14, 18], out: true, speed: 2.3, multi: true },
-      practice: { q: 2, start: [0, 0], events: [2, 3], out: false, speed: 0.8, multi: false }
+      ao: { q: 6, houses: 2, start: [2, 4], events: [14, 18], out: true, speed: 1.7, multi: true },
+      practice: { q: 2, start: [0, 0], events: [2, 3], out: false, speed: 0.8, multi: false },
+      practiceO: { q: 2, houses: 2, start: [0, 1], events: [3, 4], out: false, speed: 0.8, multi: false }
     },
-    ranks: { e: [5, 5, 4, 3, 2, 1], n: [5, 5, 4, 3, 2, 1], h: [5, 5, 4, 3, 2, 1], ae: [6, 5, 4, 3, 2, 1], a: [6, 5, 4, 3, 2, 1], ah: [6, 5, 4, 3, 2, 1] },
+    ranks: {
+      e: [5, 5, 4, 3, 2, 1], n: [5, 5, 4, 3, 2, 1], h: [5, 5, 4, 3, 2, 1], o: [5, 5, 4, 3, 2, 1],
+      ae: [6, 5, 4, 3, 2, 1], a: [6, 5, 4, 3, 2, 1], ah: [6, 5, 4, 3, 2, 1], ao: [6, 5, 4, 3, 2, 1]
+    },
     gen: gen,
     start: start,
     icon: function (c, t) {

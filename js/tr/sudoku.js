@@ -1,7 +1,8 @@
 /* えあわせ すうどく (the original: 数独) — a 4 x 4 grid of eggs; grown-ups play the original's 9 x 9 with numbers
    (おとな かんたん・ふつう・むずかしい = 初級・中級・上級, by the number of empty cells).
    Every row, column and box holds each colour (number) once. Tap an empty cell, then the egg for it.
-   Only puzzles with exactly one answer are used. */
+   Only puzzles with exactly one answer are used.
+   おに: children get a 6 x 6 of six eggs (rooms of 3 x 2); grown-ups the hardest 9 x 9 (56 to 58 empty cells). */
 (function (T) {
   'use strict';
   var U = T.U, G = typeof window !== 'undefined' ? window : {};
@@ -182,18 +183,24 @@
   T.register({
     id: 'sudoku', name: 'えあわせ すうどく', orig: '数独', kind: 'time',
     help: 'たて・よこ・へやに\nおなじ たまごが 1つずつ はいるように\nあいてる マスを うめてね！',
+    oniHelp: '6×6の おおきい すうどくだよ！\nたまごは 6しゅるい。へやは よこながだよ',
+    oniHelpA: 'いちばん むずかしい すうどくだよ！\nあいてる マスが とても おおいよ',
     levels: {
       e: { q: 2, size: 4, blanks: 4 },
       n: { q: 2, size: 4, blanks: 7 },
       h: { q: 2, size: 4, blanks: 10 },
+      o: { q: 1, size: 6, blanks: [16, 20] },
       ae: { q: 1, size: 9, blanks: [40, 44] },
       a: { q: 1, size: 9, blanks: [46, 50] },
       ah: { q: 1, size: 9, blanks: [52, 55] },
-      practice: { q: 1, size: 4, blanks: 2 }
+      ao: { q: 1, size: 9, blanks: [56, 58] },
+      practice: { q: 1, size: 4, blanks: 2 },
+      practiceO: { q: 1, size: 6, blanks: 4 },
+      practiceAO: { q: 1, size: 9, blanks: 12 }
     },
     ranks: {
-      e: [16, 22, 30, 40, 55, 75], n: [30, 40, 52, 68, 90, 120], h: [45, 60, 78, 100, 130, 170],
-      ae: [240, 330, 450, 600, 800, 1100], a: [360, 480, 630, 840, 1100, 1500], ah: [540, 720, 960, 1260, 1680, 2280]
+      e: [16, 22, 30, 40, 55, 75], n: [30, 40, 52, 68, 90, 120], h: [45, 60, 78, 100, 130, 170], o: [90, 120, 160, 210, 280, 380],
+      ae: [240, 330, 450, 600, 800, 1100], a: [360, 480, 630, 840, 1100, 1500], ah: [540, 720, 960, 1260, 1680, 2280], ao: [720, 960, 1260, 1680, 2220, 3000]
     },
     gen: gen, puzzle: puzzle, count: count, okAt: okAt, boxOf: boxOf,
     start: start,

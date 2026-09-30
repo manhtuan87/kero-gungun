@@ -1,7 +1,9 @@
 /* ぱっと おぼえて (the original: 瞬間記憶) — eggs with numbers appear for a moment, then turn around.
    Tap them from 1 upward; each right egg hatches a chick. Tapping early hides the numbers at once.
    The grown-ups' levels work like the original: one egg more after a right answer (one fewer after a wrong one),
-   and the score is how many eggs were remembered in all; at おとな むずかしい the numbers are scattered (tap the smallest first). */
+   and the score is how many eggs were remembered in all; at おとな むずかしい the numbers are scattered (tap the smallest first).
+   おに: when the numbers have turned around, pairs of eggs change places one after another (all the eggs have one
+   colour, so only the eyes can follow them); then tap them in order. */
 (function (T) {
   'use strict';
   var U = T.U, G = typeof window !== 'undefined' ? window : {};
@@ -9,14 +11,16 @@
 
   function cellXY(k) { return { x: X0 + (k % COLS + 0.5) * CELL, y: Y0 + (Math.floor(k / COLS) + 0.5) * CELL }; }
 
-  // p: { rounds, k (eggs), show (seconds), grow (grown-ups: k changes with the answers), nums (numbers from 1 to nums, not in a row) }
+  // p: { rounds, k (eggs), show (seconds), grow (grown-ups: k changes with the answers), nums (numbers from 1 to nums, not in a row) };
+  // おに: swaps (pairs of eggs that change places after the numbers turn around)
+  var SWAP_T = 0.6;
   // cells[j] holds the number nums[j] (or j + 1); a round uses as many of them as it needs.
   function most(p) { return p.grow ? Math.min(COLS * ROWS, p.k + p.rounds - 1) : p.k; }
   function gen(p, r) {
     var out = [], m = most(p);
     for (var i = 0; i < p.rounds; i++) {
       var cells = U.sample(r, U.range(0, COLS * ROWS - 1), m);
-      out.push({ cells: cells, colors: cells.map(function () { return U.int(r, 0, 5); }), nums: p.nums ? U.sample(r, U.range(1, p.nums), m) : null });
+      out.push({ cells: cells, colors: cells.map(function () { return p.swaps ? 1 : U.int(r, 0, 5); }), nums: p.nums ? U.sample(r, U.range(1, p.nums), m) : null });
     }
     return out;
   }
@@ -48,10 +52,31 @@
     function hideAll() {
       eggs.forEach(function (e) { if (e.state === 'egg') e.target = 1; });
       api.sfx('flip');
+      if (p.swaps) startSwaps();
+    }
+    // おに: pairs of eggs change places, one pair after another, then the eggs can be tapped
+    var swaps = [], si = 0, sw = null;
+    function startSwaps() {
+      swaps = [];
+      for (var k2 = 0; k2 < p.swaps; k2++) {
+        var last = swaps[swaps.length - 1], two;
+        for (var t = 0; t < 20; t++) {
+          two = U.sample(api.rnd, U.range(0, eggs.length - 1), 2);
+          if (!last || !(two.indexOf(last[0]) >= 0 && two.indexOf(last[1]) >= 0)) break;
+        }
+        swaps.push(two);
+      }
+      si = 0; sw = null; phase = 'swap'; pt = 0;
+    }
+    function eggPos(e) {
+      if (!sw || (e !== sw.a && e !== sw.b)) return { x: e.x, y: e.y };
+      var k = Math.min(1, sw.t / SWAP_T), f = k * k * (3 - 2 * k), o = e === sw.a ? sw.b : sw.a, bul = Math.sin(k * Math.PI) * 22 * (e === sw.a ? 1 : -1);
+      var dx = o.x - e.x, dy = o.y - e.y, len = Math.hypot(dx, dy) || 1;
+      return { x: e.x + dx * f + dy / len * bul, y: e.y + dy * f - dx / len * bul };
     }
     function eggNo(n) { for (var k = 0; k < eggs.length; k++) if (eggs[k].n === n) return eggs[k]; return null; }
     function tapEgg(e) {
-      if (phase === 'show') { phase = 'input'; pt = 0; hideAll(); }
+      if (phase === 'show') { phase = 'input'; pt = 0; hideAll(); if (p.swaps) return; }   // (おに: the eggs move first)
       if (phase !== 'input' || e.state !== 'egg') return;
       if (e.n === order[nextI]) {
         e.state = 'hatched'; e.hatchT = 0;
@@ -91,6 +116,17 @@
         if (!playing) return;
         if (phase === 'appear' && pt > 0.35) { phase = 'show'; pt = 0; }
         else if (phase === 'show' && pt > p.show) { phase = 'input'; pt = 0; hideAll(); }
+        else if (phase === 'swap') {
+          if (!sw && pt > 0.35) { var two = swaps[si++]; sw = { a: eggs[two[0]], b: eggs[two[1]], t: 0 }; api.sfx('whoosh'); }
+          else if (sw) {
+            sw.t += dt;
+            if (sw.t >= SWAP_T) {
+              var ax = sw.a.x, ay = sw.a.y; sw.a.x = sw.b.x; sw.a.y = sw.b.y; sw.b.x = ax; sw.b.y = ay;
+              sw = null; pt = 0.2;
+              if (si >= swaps.length) { phase = 'input'; pt = 0; since = 0; }
+            }
+          }
+        }
         else if (phase === 'input') {
           since += dt;
           if (p.practice && since > 2.2) { var e = eggNo(order[nextI]); if (e) api.hand(e.x + 6, e.y + 8); }
@@ -113,6 +149,8 @@
           if (left > 0.02) { D.roundRect(c, 62, 537, 236 * left, 12, 6); D.paint(c, '#ffb347'); }
         } else if (phase === 'input') {
           A.text(c, L(p.nums ? 'ちいさい じゅんに タッチ！' : '1から じゅんばんに タッチ！'), 180, 84, 21, '#fff', { lw: 6 });
+        } else if (phase === 'swap') {
+          A.text(c, L('めで おいかけて！'), 180, 84, 22, '#fff', { lw: 6 });
         } else if (phase === 'bad') {
           A.text(c, L('ざんねん！ こたえは これ'), 180, 84, 21, '#fff', { lw: 6 });
         }
@@ -124,7 +162,8 @@
             c.restore();
             return;
           }
-          c.save(); c.translate(e.x, e.y);
+          var ep = eggPos(e);
+          c.save(); c.translate(ep.x, ep.y);
           var s = e.pop < 1 ? 0.4 + 0.6 * e.pop + Math.sin(e.pop * Math.PI) * 0.15 : 1;
           c.scale(s, s);
           if (e.state === 'wrong') { D.circle(c, 0, 0, 38); D.paint(c, 'rgba(79,141,255,.25)'); }
@@ -134,7 +173,7 @@
         chicks.forEach(function (ch) { D.chick(c, ch.x, ch.y, 0.9, clock, { fly: true, flap: ch.t * 26, shell: ch.shell, happy: true }); });
       },
       peek: function () {   // for playtesting: where the next egg is
-        if (phase !== 'show' && phase !== 'input') return null;
+        if ((phase !== 'show' || p.swaps) && phase !== 'input') return null;
         var e = eggNo(order[nextI]);
         return e ? { x: e.x, y: e.y } : null;
       },
@@ -150,6 +189,7 @@
   T.register({
     id: 'patto', name: 'ぱっと おぼえて', orig: '瞬間記憶', kind: 'count',
     help: 'たまごの すうじを ぱっと おぼえて\n1から じゅんばんに タッチしてね！',
+    oniHelp: 'たまごが うらがえった あと、いれかわるよ。\nめで おいかけてね！',
     levels: {
       e: { rounds: 8, k: 3, show: 3.0 },
       n: { rounds: 8, k: 4, show: 2.5 },
@@ -159,11 +199,15 @@
       ah: { rounds: 10, k: 5, show: 1.2, grow: true, nums: 30 },
       test: { rounds: 6, k: 4, show: 2.5 },
       testA: { rounds: 6, k: 6, show: 1.5 },
-      practice: { rounds: 2, k: 2, show: 4 }
+      practice: { rounds: 2, k: 2, show: 4 },
+      o: { rounds: 8, k: 4, show: 2.0, swaps: 1 },
+      ao: { rounds: 10, k: 5, show: 1.5, grow: true, nums: 30, swaps: 2 },
+      practiceO: { rounds: 2, k: 2, show: 4, swaps: 1 },
+      practiceAO: { rounds: 2, k: 3, show: 3, swaps: 1, grow: false, nums: 0 }
     },
     ranks: {
-      e: [8, 7, 6, 5, 4, 2], n: [8, 7, 6, 5, 4, 2], h: [8, 7, 6, 5, 4, 2],
-      ae: [60, 50, 42, 34, 26, 18], a: [70, 60, 50, 40, 30, 20], ah: [80, 68, 56, 45, 34, 22],
+      e: [8, 7, 6, 5, 4, 2], n: [8, 7, 6, 5, 4, 2], h: [8, 7, 6, 5, 4, 2], o: [8, 7, 6, 5, 4, 2],
+      ae: [60, 50, 42, 34, 26, 18], a: [70, 60, 50, 40, 30, 20], ah: [80, 68, 56, 45, 34, 22], ao: [80, 68, 56, 45, 34, 22],
       test: [6, 5, 4, 3, 2, 1], testA: [6, 5, 4, 3, 2, 1]
     },
     gen: gen,

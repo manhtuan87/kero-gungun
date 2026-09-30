@@ -314,7 +314,45 @@ Lang.add({
   'パソコンでの確認中は 音も声も出しません（アドレスに ?sound=1 を付けると出ます）。': ['Khi kiểm tra trên máy tính, trò chơi không phát âm thanh hay giọng nói (thêm ?sound=1 vào địa chỉ để bật).', 'While testing on a computer there is no sound or voice (add ?sound=1 to the address to hear it).', '컴퓨터에서 확인할 때는 소리도 목소리도 나오지 않아요 (주소에 ?sound=1을 붙이면 나와요).'],
   'この ことばの こえ：スマホの 読み上げの 声が 見つかりました。': ['Giọng tiếng Việt: đã tìm thấy giọng đọc trên điện thoại.', "English voice: the phone's text-to-speech voice was found.", '한국어 목소리: 휴대폰의 음성 읽기 목소리를 찾았어요.'],
   'この ことばの こえ：スマホに 声が 見つかりません。Android の「設定 → システム → 言語と入力 → テキスト読み上げ」で この ことばの 音声データを 入れると しゃべります。': ['Giọng tiếng Việt: chưa tìm thấy giọng đọc trên điện thoại. Vào “Cài đặt → Hệ thống → Ngôn ngữ và phương thức nhập → Chuyển văn bản thành giọng nói” của Android, tải dữ liệu giọng tiếng Việt thì Giáo sư Kero sẽ nói.', 'English voice: no voice was found on the phone. Install the English voice data in Android “Settings → System → Languages & input → Text-to-speech output” and Dr. Kero will talk.', '한국어 목소리: 휴대폰에서 목소리를 찾지 못했어요. Android의 “설정 → 시스템 → 언어 및 입력 → 텍스트 음성 변환”에서 한국어 음성 데이터를 설치하면 말해요.'],
-  'この ことばの こえ：このブラウザでは 使えません。': ['Giọng tiếng Việt: trình duyệt này không hỗ trợ.', "English voice: this browser can't speak.", '한국어 목소리: 이 브라우저에서는 쓸 수 없어요.']
+  'この ことばの こえ：このブラウザでは 使えません。': ['Giọng tiếng Việt: trình duyệt này không hỗ trợ.', "English voice: this browser can't speak.", '한국어 목소리: 이 브라우저에서는 쓸 수 없어요.'],
+
+  // ---------------------------------------------------------------- おに (鬼モード, 2026-09-30; no Korean from here on)
+  'おに': ['Siêu khó', 'Super hard'],
+  'おとな おに': ['Người lớn · Siêu khó', 'Grown-up · Super hard'],
+  '「{level}」は「{from}」で ★3つか、スタンプ {n}こで あくよ': ['Mức “{level}” sẽ mở khi được ★3 ở mức “{from}”, hoặc có {n} con dấu', '“{level}” opens with ★3 at “{from}”, or with {n} stamps'],
+  '「おに」が あそべるよ！': ['Đã chơi được mức “Siêu khó”!', 'You can play “Super hard” now!'],
+  '「{name}」で「{level}」が えらべるよ': ['Bài “{name}” đã chọn được mức “{level}”', 'You can choose “{level}” in “{name}”'],
+  'ぜんぶの トレーニングで「おに」が えらべるよ': ['Giờ bài nào cũng chọn được mức “Siêu khó”', 'You can choose “Super hard” in every training'],
+  '「おに」で あそべるように なったよ！ ちょうせん してみてね': ['Giờ con chơi được mức “Siêu khó” rồi! Thử thách xem nào!', 'You can play “Super hard” now! Give it a try!'],
+  'おにを のりこえたね！ すごい！': ['Con vượt qua mức Siêu khó rồi! Giỏi quá!', 'You beat “Super hard”! Amazing!'],
+  'おにも へっちゃら だね！': ['Siêu khó cũng không làm khó được con!', '“Super hard” is no problem for you!'],
+  // the explanations of おに (their twists)
+  '3つの かずの しきだよ。\nまえから じゅんばんに けいさんしてね！': ['Phép tính có 3 số.\nTính lần lượt từ trái sang phải nhé!', 'Sums with three numbers.\nWork them out from the left!'],
+  '2けたの かけざんや わりざんも でるよ。\nできるだけ はやく こたえてね！': ['Có cả phép nhân và phép chia số có 2 chữ số.\nTrả lời thật nhanh nhé!', 'Two-digit times and divisions too.\nAnswer as fast as you can!'],
+  '「いちばん おおきい」か「いちばん ちいさい」か、\nまいかい かわるよ。よく きいてね！': ['Lúc thì “số lớn nhất”, lúc thì “số nhỏ nhất”,\nmỗi lần một khác. Nghe kỹ nhé!', '“The biggest” or “the smallest”:\nit changes every time. Listen well!'],
+  'はっぱが ゆっくり うごくよ。\nじゅんばんに タッチしてね！': ['Những chiếc lá sẽ trôi chầm chậm.\nChạm theo thứ tự nhé!', 'The lily pads drift slowly.\nTap them in order!'],
+  'たまごが うらがえった あと、いれかわるよ。\nめで おいかけてね！': ['Sau khi úp lại, các quả trứng sẽ đổi chỗ.\nDõi mắt theo nhé!', 'After they turn around, the eggs change places.\nFollow them with your eyes!'],
+  'おうちが 2つ あるよ。\nさいごに どっちの おうちか きくよ！': ['Có 2 ngôi nhà.\nCuối cùng mới hỏi nhà nào nhé!', 'There are two houses.\nAt the end you’ll be asked about one of them!'],
+  '2つ まえの えを えらんでね！\nあいだの えに だまされないでね': ['Hãy chọn hình trước đó hai lượt!\nĐừng để hình ở giữa đánh lừa nhé', 'Choose the picture from two before!\nDon’t be fooled by the one in between'],
+  '3つ まえの えを えらんでね！\nあいだの えに だまされないでね': ['Hãy chọn hình trước đó ba lượt!\nĐừng để các hình ở giữa đánh lừa nhé', 'Choose the picture from three before!\nDon’t be fooled by the ones in between'],
+  'ケロはかせの ては すぐ かくれるよ。\nおぼえて だしてね！ ボタンの ばしょも かわるよ': ['Tay của Giáo sư Kero sẽ trốn đi ngay.\nNhớ rồi ra tay nhé! Các nút cũng đổi chỗ đó', 'Dr. Kero’s hand hides quickly.\nRemember it! The buttons change places too'],
+  'とりも とんで くるよ。\nとりの ときは ジャンプしないでね！': ['Có cả chim bay tới đấy.\nKhi có chim thì đừng nhảy nhé!', 'Birds fly in too.\nDon’t jump when a bird comes!'],
+  'ことりと ちょうちょを\nどっちも かぞえてね！ むしは かぞえないよ': ['Hãy đếm cả chim\nlẫn bướm nhé! Không đếm côn trùng khác', 'Count the birds\nand the butterflies! Not the other bugs'],
+  'もじを タッチする たびに、\nもじの ばしょが かわるよ！': ['Mỗi lần con chạm một chữ,\ncác chữ sẽ đổi chỗ!', 'Every time you tap a letter,\nthe letters change places!'],
+  'がくふは すこし みたら きえるよ。\nおぼえて ひいてね！': ['Bản nhạc chỉ hiện một chút rồi biến mất.\nNhớ rồi đàn nhé!', 'The notes show for a moment, then vanish.\nRemember them and play!'],
+  '6×6の おおきい すうどくだよ！\nたまごは 6しゅるい。へやは よこながだよ': ['Sudoku 6×6 thật to!\nCó 6 loại trứng. Các ô vuông lớn nằm ngang', 'A big 6×6 sudoku!\nSix kinds of eggs. The rooms are wide'],
+  'いちばん むずかしい すうどくだよ！\nあいてる マスが とても おおいよ': ['Sudoku khó nhất đây!\nCó rất nhiều ô trống', 'The hardest sudoku!\nThere are very many empty cells'],
+  // new words inside the trainings
+  'いちばん おおきい かず！': ['Số lớn nhất!', 'The biggest number!'],
+  'いちばん ちいさい かず！': ['Số nhỏ nhất!', 'The smallest number!'],
+  'めで おいかけて！': ['Dõi mắt theo nhé!', 'Follow with your eyes!'],
+  'ひだりの おうちには なんにん？': ['Nhà bên trái có mấy người?', 'How many in the left house?'],
+  'みぎの おうちには なんにん？': ['Nhà bên phải có mấy người?', 'How many in the right house?'],
+  'どっちの おうちも よく みててね！': ['Nhìn kỹ cả hai ngôi nhà nhé!', 'Watch both houses!'],
+  'みっつ まえの え は どれ？': ['Hình trước đó ba lượt là hình nào?', 'Which one was three pictures ago?'],
+  'ちょうちょは なんびき？': ['Có mấy con bướm?', 'How many butterflies?'],
+  'ことり {a}わ・ちょうちょ {b}ひき': ['{a} chim · {b} bướm', '{a} birds · {b} butterflies'],
+  'ひいてね！': ['Đàn đi nào!', 'Now play!']
 });
 
 // The big title, one line per row (each letter hops on its own).
@@ -339,7 +377,7 @@ var GUNGUN_LANG = {
       house: 'nhà', boat: 'thuyền', mushroom: 'nấm', glasses: 'kính', banana: 'chuối', lemon: 'chanh', mouse: 'chuột',
       drum: 'trống', book: 'sách', scissors: 'kéo', ghost: 'ma', owl: 'cú', corn: 'ngô'
     },
-    len: { e: [2, 3], n: [3, 3], h: [3, 5], ae: [3, 4], a: [3, 5], ah: [3, 5], practice: [2, 2] }
+    len: { e: [2, 3], n: [3, 3], h: [3, 5], ae: [3, 4], a: [3, 5], ah: [3, 5], practice: [2, 2], o: [3, 4], ao: [3, 5], practiceO: [2, 2] }
   },
   en: {
     keys: ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C'],
@@ -357,7 +395,7 @@ var GUNGUN_LANG = {
       owl: 'OWL', acorn: 'ACORN', carrot: 'CARROT', crown: 'CROWN', snowman: 'SNOWMAN', beetle: 'BEETLE', corn: 'CORN',
       ladybug: 'LADYBUG'
     },
-    len: { e: [3, 4], n: [4, 5], h: [5, 6], ae: [4, 5], a: [5, 7], ah: [6, 6], practice: [3, 3] }
+    len: { e: [3, 4], n: [4, 5], h: [5, 6], ae: [4, 5], a: [5, 7], ah: [6, 6], practice: [3, 3], o: [4, 5], ao: [5, 7], practiceO: [3, 3] }
   },
   ko: {
     keys: ['도', '레', '미', '파', '솔', '라', '시', '도'],
@@ -376,6 +414,6 @@ var GUNGUN_LANG = {
       owl: '부엉이', acorn: '도토리', carrot: '당근', crown: '왕관', snowman: '눈사람', beetle: '장수풍뎅이', corn: '옥수수',
       ladybug: '무당벌레'
     },
-    len: { e: [2, 2], n: [3, 3], h: [3, 4], ae: [2, 3], a: [2, 4], ah: [3, 4], practice: [2, 2] }
+    len: { e: [2, 2], n: [3, 3], h: [3, 4], ae: [2, 3], a: [2, 4], ah: [3, 4], practice: [2, 2], o: [3, 4], ao: [3, 4], practiceO: [2, 2] }
   }
 };
