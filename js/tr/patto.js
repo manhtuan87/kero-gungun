@@ -1,4 +1,4 @@
-/* ぱっと おぼえて (the original: 瞬間記憶) — eggs with numbers appear for a moment, then turn around.
+/* ぱっと おぼえて — eggs with numbers appear for a moment, then turn around.
    Tap them from 1 upward; each right egg hatches a chick. Tapping early hides the numbers at once.
    The grown-ups' levels work like the original: one egg more after a right answer (one fewer after a wrong one),
    and the score is how many eggs were remembered in all; at おとな むずかしい the numbers are scattered (tap the smallest first).
@@ -187,7 +187,7 @@
   }
 
   T.register({
-    id: 'patto', name: 'ぱっと おぼえて', orig: '瞬間記憶', kind: 'count',
+    id: 'patto', name: 'ぱっと おぼえて', kind: 'count',
     help: 'たまごの すうじを ぱっと おぼえて\n1から じゅんばんに タッチしてね！',
     oniHelp: 'たまごが うらがえった あと、いれかわるよ。\nめで おいかけてね！',
     levels: {

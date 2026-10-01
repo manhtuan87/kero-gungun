@@ -57,7 +57,6 @@
           ranks: Array.isArray(c.ranks) ? c.ranks.slice(0, 3).map(function (r) { return clampInt(r, 1, 7); }) : [],
           tests: Array.isArray(c.tests) ? c.tests.slice(0, 3).filter(function (t) { return typeof t === 'string'; }) : []
         };
-        if (typeof c.age === 'number') o.check.age = clampInt(c.age, 20, 80);
       }
       out.days[k] = o;
     });
@@ -245,7 +244,20 @@
 
   // ---------------------------------------------------------------- the daily check
 
-  function brainAge(p) { return Math.max(20, Math.min(80, Math.round(20 + 60 * Math.pow(1 - p, 1.3)))); }
+  /* How today's check (p: 0..1) compares with the player's own usual, for the grown-ups' result. There is no proven
+     way to turn these scores into an age, so we compare with the mean of the last COND_DAYS recorded checks:
+     'up' / 'down' when today is at least one spread (their standard deviation, never less than COND_BAND) above or
+     below it, else 'same'; 'warmup' (with `need`) until there are COND_MIN checks to compare with. */
+  var COND_DAYS = 10, COND_MIN = 3, COND_BAND = 0.05;
+  function condition(s, today, p) {
+    var u = udata(s), ps = Object.keys(u.days).filter(function (k) { return k < today && u.days[k].check; }).sort()
+      .slice(-COND_DAYS).map(function (k) { return u.days[k].check.p; });
+    if (ps.length < COND_MIN) return { state: 'warmup', need: COND_MIN - ps.length };
+    var mean = ps.reduce(function (a, b) { return a + b; }, 0) / ps.length;
+    var sd = Math.sqrt(ps.reduce(function (a, b) { return a + (b - mean) * (b - mean); }, 0) / ps.length);
+    var band = Math.max(COND_BAND, sd);
+    return { state: p >= mean + band ? 'up' : p <= mean - band ? 'down' : 'same', mean: mean, band: band };
+  }
   function checkedToday(s, today) { var d = udata(s).days[today || dayKey()]; return !!(d && d.check); }
 
   /* info: { ranks: [3 ranks], tests: [3 ids], today? }  Only the first check of a day is kept. */
@@ -256,11 +268,8 @@
     var p = 0;
     info.ranks.forEach(function (r) { p += (r - 1) / 6; });
     p /= info.ranks.length || 1;
-    var res = { p: p, rank: 1 + Math.round(p * 6), age: isAdult(s) ? brainAge(p) : null };
-    if (recorded) {
-      day.check = { p: p, rank: res.rank, ranks: info.ranks.slice(), tests: info.tests.slice() };
-      if (res.age != null) day.check.age = res.age;
-    }
+    var res = { p: p, rank: 1 + Math.round(p * 6), score: Math.round(p * 100), cond: condition(s, today, p) };
+    if (recorded) day.check = { p: p, rank: res.rank, ranks: info.ranks.slice(), tests: info.tests.slice() };
     day.stamp = true;
     res.recorded = recorded;
     res.stampNew = stampNew;
@@ -296,7 +305,7 @@
     user: user, udata: udata, isAdult: isAdult, addUser: addUser, removeUser: removeUser, resetUser: resetUser,
     rankOf: rankOf, starsOf: starsOf, better: better,
     stampCount: stampCount, stampDays: stampDays, isOpen: isOpen, songOpen: songOpen, oniOpen: oniOpen, nextUnlock: nextUnlock, trainingInfo: trainingInfo,
-    addRun: addRun, addCheck: addCheck, checkedToday: checkedToday, brainAge: brainAge,
+    addRun: addRun, addCheck: addCheck, checkedToday: checkedToday, condition: condition,
     recentOf: recentOf, addRecent: addRecent,
     starsEarned: starsEarned, wallet: wallet
   };

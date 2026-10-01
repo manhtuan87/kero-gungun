@@ -1,4 +1,4 @@
-/* けいさん (the original: 計算25 / 計算100) — answer the sums on the chalkboard as fast as you can.
+/* けいさん — answer the sums on the chalkboard as fast as you can.
    Children tap the answer (0-10); grown-ups type it (25 sums with two-digit numbers and times tables).
    おに: children get three numbers (3 ＋ 4 − 2, worked out from the left, every step from 0 to 10); grown-ups get
    two-digit sums that carry, take-aways that borrow, two-digit times one-digit, and divisions. */
@@ -167,7 +167,7 @@
   }
 
   T.register({
-    id: 'keisan', name: 'けいさん', orig: '計算25', kind: 'time',
+    id: 'keisan', name: 'けいさん', kind: 'time',
     help: 'しきを みて こたえの\nすうじを タッチしてね！',
     oniHelp: '3つの かずの しきだよ。\nまえから じゅんばんに けいさんしてね！',
     oniHelpA: '2けたの かけざんや わりざんも でるよ。\nできるだけ はやく こたえてね！',

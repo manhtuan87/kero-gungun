@@ -1,4 +1,4 @@
-/* あとだし じゃんけん (the original: 後出し勝負テスト) — ケロはかせ shows a hand and says
+/* あとだし じゃんけん — ケロはかせ shows a hand and says
    "かって！" (win) or "まけて！" (lose); answer with the right hand as fast as you can.
    Losing on purpose is the hard part: it trains holding back the hand you want to show.
    At おとな むずかしい the three buttons change places every time.
@@ -158,7 +158,7 @@
   }
 
   T.register({
-    id: 'janken', name: 'あとだし じゃんけん', orig: '後出し勝負テスト', kind: 'time',
+    id: 'janken', name: 'あとだし じゃんけん', kind: 'time',
     help: 'ケロはかせの てを みて\n「かって」なら かつ て、「まけて」なら まける てを\nはやく だしてね！',
     oniHelp: 'ケロはかせの ては すぐ かくれるよ。\nおぼえて だしてね！ ボタンの ばしょも かわるよ',
     levels: {

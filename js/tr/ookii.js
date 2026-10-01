@@ -1,4 +1,4 @@
-/* いちばん おおきい かず (the original: 最高数字テスト) — balloons with numbers float up;
+/* いちばん おおきい かず — balloons with numbers float up;
    pop the one with the biggest number. From ふつう on, the balloon sizes do not match the numbers.
    おに: each round asks for the biggest or for the smallest number (a banner at the top, and ケロはかせ says it);
    the sizes mislead the other way round for the smallest. */
@@ -120,7 +120,7 @@
   }
 
   T.register({
-    id: 'ookii', name: 'いちばん おおきい かず', orig: '最高数字テスト', kind: 'time',
+    id: 'ookii', name: 'いちばん おおきい かず', kind: 'time',
     help: 'ふうせんの なかで\nいちばん おおきい かずを タッチ！\nふうせんの おおきさに だまされないでね',
     oniHelp: '「いちばん おおきい」か「いちばん ちいさい」か、\nまいかい かわるよ。よく きいてね！',
     levels: {

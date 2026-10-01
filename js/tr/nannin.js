@@ -1,4 +1,4 @@
-/* なんにん いるかな？ (the original: 人数数え) — friends walk into ケロちゃん's house and out again.
+/* なんにん いるかな？ — friends walk into ケロちゃん's house and out again.
    At the end, how many are inside? The roof opens to show the answer.
    おに: two houses, left and right — friends go in and out of both, and only at the end does ケロはかせ say
    which house he asks about. */
@@ -164,7 +164,7 @@
   }
 
   T.register({
-    id: 'nannin', name: 'なんにん いるかな？', orig: '人数数え', kind: 'count',
+    id: 'nannin', name: 'なんにん いるかな？', kind: 'count',
     help: 'おうちに はいったり でたり…\nさいごに おうちの なかに\nなんにん いるか こたえてね！',
     oniHelp: 'おうちが 2つ あるよ。\nさいごに どっちの おうちか きくよ！',
     levels: {

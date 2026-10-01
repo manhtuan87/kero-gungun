@@ -1,4 +1,4 @@
-/* さっきの え (the original: 直前写真) — pictures come one at a time; tap the one shown just before.
+/* さっきの え — pictures come one at a time; tap the one shown just before.
    かんたん: remember the picture you just saw. むずかしい: the picture on screen is among the choices too.
    Grown-ups: the picture from one or two before; at おとな むずかしい the picture in between is among the choices too.
    おに: children tell the picture from two before, grown-ups from three before (the ones in between are choices too). */
@@ -133,7 +133,7 @@
   }
 
   T.register({
-    id: 'sakki', name: 'さっきの え', orig: '直前写真', kind: 'count', pool: 'pics',
+    id: 'sakki', name: 'さっきの え', kind: 'count', pool: 'pics',
     help: 'えが 1まいずつ でてくるよ\nひとつ まえに でた えを\nしたから えらんでね！',
     oniHelp: '2つ まえの えを えらんでね！\nあいだの えに だまされないでね',
     oniHelpA: '3つ まえの えを えらんでね！\nあいだの えに だまされないでね',

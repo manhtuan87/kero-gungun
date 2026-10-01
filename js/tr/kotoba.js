@@ -1,4 +1,4 @@
-/* ことば つくり (the original: 漢字合成, here with hiragana) — look at the picture and put the
+/* ことば つくり — look at the picture and put the
    letter blocks in order to make its name. むずかしい adds letters that are not in the word.
    おに: after each right letter, the letters still to use change places (and more letters are not in the word). */
 (function (T) {
@@ -116,7 +116,7 @@
   }
 
   T.register({
-    id: 'kotoba', name: 'ことば つくり', orig: '漢字合成', kind: 'time', pool: 'pics',
+    id: 'kotoba', name: 'ことば つくり', kind: 'time', pool: 'pics',
     help: 'えを みて なまえの もじを\nじゅんばんに タッチしてね！',
     oniHelp: 'もじを タッチする たびに、\nもじの ばしょが かわるよ！',
     levels: {

@@ -1,4 +1,4 @@
-/* えあわせ すうどく (the original: 数独) — a 4 x 4 grid of eggs; grown-ups play the original's 9 x 9 with numbers
+/* えあわせ パズル — a 4 x 4 grid of eggs; grown-ups play the original's 9 x 9 with numbers
    (おとな かんたん・ふつう・むずかしい = 初級・中級・上級, by the number of empty cells).
    Every row, column and box holds each colour (number) once. Tap an empty cell, then the egg for it.
    Only puzzles with exactly one answer are used.
@@ -181,10 +181,10 @@
   }
 
   T.register({
-    id: 'sudoku', name: 'えあわせ すうどく', orig: '数独', kind: 'time',
+    id: 'sudoku', name: 'えあわせ パズル', kind: 'time',
     help: 'たて・よこ・へやに\nおなじ たまごが 1つずつ はいるように\nあいてる マスを うめてね！',
-    oniHelp: '6×6の おおきい すうどくだよ！\nたまごは 6しゅるい。へやは よこながだよ',
-    oniHelpA: 'いちばん むずかしい すうどくだよ！\nあいてる マスが とても おおいよ',
+    oniHelp: '6×6の おおきい パズルだよ！\nたまごは 6しゅるい。へやは よこながだよ',
+    oniHelpA: 'いちばん むずかしい パズルだよ！\nあいてる マスが とても おおいよ',
     levels: {
       e: { q: 2, size: 4, blanks: 4 },
       n: { q: 2, size: 4, blanks: 7 },

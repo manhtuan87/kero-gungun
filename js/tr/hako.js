@@ -1,4 +1,4 @@
-/* はこ かぞえ (the original: 箱数え) — used by ふたりで (two players): a pile of blocks shows for a
+/* つみき かぞえ — used by ふたりで (two players): a pile of blocks shows for a
    moment, then a cloth covers it. How many blocks were there? Every block can be seen
    (the original also counts blocks hidden behind others; that is left out for young children). */
 (function (T) {
@@ -34,7 +34,7 @@
   }
 
   T.register({
-    id: 'hako', name: 'はこ かぞえ', orig: '箱数え', kind: 'count', versusOnly: true,
+    id: 'hako', name: 'つみき かぞえ', kind: 'count', versusOnly: true,
     help: 'つみきが すこしだけ みえるよ\nいくつ あったかな？',
     levels: {
       e: { blocks: [3, 5], cols: [2, 3], tall: 2, show: 3 },

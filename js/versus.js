@@ -8,8 +8,8 @@ var Versus = (function () {
   var host = null, W = 360, HALF = 320, ROUNDS = 5;
   var $ = function (id) { return document.getElementById(id); };
   var GAMES = [
-    { id: 'tori', name: 'とり かぞえ', ask: 'ことりは なんわ？' },
-    { id: 'hako', name: 'はこ かぞえ', ask: 'つみきは いくつ？' },
+    { id: 'tori', name: 'もりの ことり', ask: 'ことりは なんわ？' },
+    { id: 'hako', name: 'つみき かぞえ', ask: 'つみきは いくつ？' },
     { id: 'janken', name: 'あとだし じゃんけん', ask: '' }
   ];
   var TORI = { e: { birds: [2, 4], others: 2, move: 0 }, n: { birds: [3, 6], others: 4, move: 1 }, h: { birds: [4, 8], others: 5, move: 2 } };

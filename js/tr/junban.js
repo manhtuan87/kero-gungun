@@ -1,4 +1,4 @@
-/* じゅんばん ぴょんぴょん (the original: 順番線引テスト) — lily pads with numbers (and hiragana) are
+/* じゅんばん ぴょんぴょん — lily pads with numbers (and hiragana) are
    scattered on a pond; tap them in order and the partner hops from pad to pad.
    むずかしい alternates numbers and letters: 1 → あ → 2 → い ..., like the original's 1 → A → 2 → B.
    おに: the pads drift slowly on the water, each on a small circle (the next pad has to be found while it moves). */
@@ -152,7 +152,7 @@
   }
 
   T.register({
-    id: 'junban', name: 'じゅんばん ぴょんぴょん', orig: '順番線引テスト', kind: 'time',
+    id: 'junban', name: 'じゅんばん ぴょんぴょん', kind: 'time',
     help: 'はっぱの すうじを\n1から じゅんばんに タッチすると\nぴょんぴょん とんでいくよ！',
     oniHelp: 'はっぱが ゆっくり うごくよ。\nじゅんばんに タッチしてね！',
     levels: {

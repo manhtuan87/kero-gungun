@@ -1,4 +1,4 @@
-/* ジャンプで タッチ (the original: 二重課題) — two things at once: the partner runs along the top,
+/* ジャンプで タッチ — two things at once: the partner runs along the top,
    press ジャンプ to hop over rocks and mushrooms, and at the same time touch the biggest number below.
    Bumping into a rock only makes the partner trip; the game always lasts the same time.
    おに: birds fly in too, just above the partner's head — jumping then bumps into the bird (stay down and it flies over). */
@@ -133,7 +133,7 @@
   }
 
   T.register({
-    id: 'jump', name: 'ジャンプで タッチ', orig: '二重課題', kind: 'count',
+    id: 'jump', name: 'ジャンプで タッチ', kind: 'count',
     help: 'いしが きたら ジャンプ！\nおなじ ときに したの おおきい かずを\nタッチしてね。ふたつ いっしょに できるかな？',
     oniHelp: 'とりも とんで くるよ。\nとりの ときは ジャンプしないでね！',
     levels: {

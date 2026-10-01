@@ -1,4 +1,4 @@
-/* ピアノ (the original: 名曲演奏) — play a song by following the notes. The notes sit higher or lower
+/* ピアノ — play a song by following the notes. The notes sit higher or lower
    by pitch, like a simple score. かんたん lights up the next key. The keys are always in colour; at
    むずかしい and おとな かんたん the notes above are white, so their names have to be read. From おとな ふつう on
    the notes stand on a real staff without names, as in the original's score; おとな むずかしい has no names on the keys either.
@@ -177,7 +177,7 @@
   }
 
   T.register({
-    id: 'piano', name: 'ピアノ', orig: '名曲演奏', kind: 'time', songs: true,
+    id: 'piano', name: 'ピアノ', kind: 'time', songs: true,
     help: 'うえの おんぷと おなじ けんばんを\nじゅんばんに おしてね！\nさいごに きょくを ぜんぶ きけるよ',
     oniHelp: 'がくふは すこし みたら きえるよ。\nおぼえて ひいてね！',
     // colors: the notes above in the keys' colours (the keys themselves always are); staff: notes on a staff, no names;

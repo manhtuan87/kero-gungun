@@ -1,4 +1,4 @@
-/* とり かぞえ (the original: 野鳥数え) — a forest full of little creatures; count only the birds.
+/* もりの ことり — a forest full of little creatures; count only the birds.
    Grown-ups see the forest for 5 seconds only. The same questions are used by ふたりで (two players).
    おに: count the butterflies too — first "how many birds?", then "how many butterflies?" (ladybugs and bees are not counted). */
 (function (T) {
@@ -155,7 +155,7 @@
   }
 
   T.register({
-    id: 'tori', name: 'とり かぞえ', orig: '野鳥数え', kind: 'count',
+    id: 'tori', name: 'もりの ことり', kind: 'count',
     help: 'もりの なかに いる\nことりだけを かぞえてね！\nちょうちょや むしは かぞえないよ',
     oniHelp: 'ことりと ちょうちょを\nどっちも かぞえてね！ むしは かぞえないよ',
     levels: {

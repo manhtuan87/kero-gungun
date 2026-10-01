@@ -586,7 +586,7 @@ var Art = (function () {
     ctx.restore();
   }
 
-  // A block for はこ かぞえ, drawn from slightly above (size = edge).
+  // A block for つみき かぞえ, drawn from slightly above (size = edge).
   function cube(ctx, x, y, size, color) {
     var h = size * 0.5;
     ctx.save(); ctx.translate(x, y);

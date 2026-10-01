@@ -330,14 +330,31 @@ console.log('save data');
   check(C.stampCount(C.udata(s)) === 2, 'two stamps');
   check(C.isOpen(s, 'ookii') && !C.isOpen(s, 'kotoba'), 'unlocks by stamps');
   const ck = C.addCheck(s, { ranks: [7, 7, 7], tests: ['keisan', 'patto', 'janken'], today: '2026-10-02' });
-  check(ck.recorded && ck.rank === 7 && ck.age == null, 'check for a child');
+  check(ck.recorded && ck.rank === 7 && ck.score === 100 && ck.age === undefined, 'check: a score, no brain age');
+  check(ck.cond.state === 'warmup' && ck.cond.need === 3, 'the first check only starts to learn the usual');
   check(!C.addCheck(s, { ranks: [1, 1, 1], tests: ['keisan', 'patto', 'janken'], today: '2026-10-02' }).recorded, 'second check of a day is practice');
-  check(C.brainAge(1) === 20 && C.brainAge(0) === 80, 'brain age range');
+  // today's condition against the player's own usual (the mean of the last checks, one spread either way)
+  {
+    const cs = C.fresh(), day = n => '2026-11-' + String(n).padStart(2, '0'), three = r => [r, r, r];
+    const tests = ['keisan', 'patto', 'janken'];
+    check(C.condition(cs, day(1), 0.5).state === 'warmup', 'no checks yet: warming up');
+    [4, 4, 4].forEach((r, i) => C.addCheck(cs, { ranks: three(r), tests, today: day(i + 1) }));
+    check(C.condition(cs, day(2), 0.5).need === 2, 'only the days before count');
+    check(C.condition(cs, day(4), 0.5).state === 'same', 'the same as usual');
+    check(C.condition(cs, day(4), 0.56).state === 'up' && C.condition(cs, day(4), 0.44).state === 'down', 'at least 5 points either way');
+    check(C.condition(cs, day(4), 0.54).state === 'same' && C.condition(cs, day(4), 0.46).state === 'same', 'small changes are as usual');
+    [1, 7, 1, 7].forEach((r, i) => C.addCheck(cs, { ranks: three(r), tests, today: day(i + 4) }));
+    const wide = C.condition(cs, day(9), 0.75);
+    check(wide.band > 0.3 && wide.state === 'same', 'an up-and-down player needs a bigger change');
+    check(C.addCheck(cs, { ranks: three(7), tests, today: day(20) }).cond.state === 'up' && C.addCheck(cs, { ranks: three(1), tests, today: day(21) }).cond.state === 'down', 'addCheck tells the condition');
+    for (let k = 22; k < 30; k++) C.addCheck(cs, { ranks: three(4), tests, today: day(k) });
+    check(C.condition(cs, day(30), 0.5).mean === 0.5, 'only the last 10 checks make the usual');
+  }
   const u = C.addUser(s, 'パパ', 'adult');
   check(u && s.users.length === 2, 'add user');
   s.cur = u.id;
   check(C.isAdult(s) && C.stampCount(C.udata(s)) === 0, 'users have their own data');
-  check(C.addCheck(s, { ranks: [4, 4, 4], tests: ['a', 'b', 'c'], today: '2026-10-03' }).age === C.brainAge(0.5), 'grown-ups get a brain age');
+  check(C.addCheck(s, { ranks: [4, 4, 4], tests: ['a', 'b', 'c'], today: '2026-10-03' }).score === 50, 'grown-ups get a score');
   check(C.removeUser(s, u.id) && s.users.length === 1 && s.cur === 'u1', 'remove user');
   check(!C.removeUser(s, 'u1'), 'the last user stays');
   // ★: what the animal gives, but ★3 only with no mistakes and ★1 at half or less right

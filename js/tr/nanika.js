@@ -1,4 +1,4 @@
-/* なにが あった？ (the original: 単語記憶テスト) — only in the daily check.
+/* なにが あった？ — only in the daily check.
    Look at some pictures for a while, then pick out the ones you saw among more pictures. */
 (function (T) {
   'use strict';
@@ -106,7 +106,7 @@
   }
 
   T.register({
-    id: 'nanika', name: 'なにが あった？', orig: '単語記憶テスト', kind: 'count', checkOnly: true, pool: 'pics',
+    id: 'nanika', name: 'なにが あった？', kind: 'count', checkOnly: true, pool: 'pics',
     help: 'えを よく おぼえてね！\nそのあと たくさんの えの なかから\nみた えを えらぶよ',
     levels: {
       test: { show: 6, total: 12, time: 15 },

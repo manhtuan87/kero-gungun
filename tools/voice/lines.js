@@ -23,8 +23,8 @@ function add(text, read) {
 // ---------------------------------------------------------------- names read more naturally in kanji
 const TRAINING_READ = {
   keisan: '計算', ookii: '一番大きいかず', junban: '順番ぴょんぴょん', patto: 'ぱっと覚えて', nannin: '何人いるかな？',
-  sakki: 'さっきの絵', janken: '後出しじゃんけん', jump: 'ジャンプでタッチ', tori: 'とりかぞえ', kotoba: '言葉づくり',
-  piano: 'ピアノ', sudoku: '絵合わせ数独', nanika: '何があった？', hako: 'はこかぞえ'
+  sakki: 'さっきの絵', janken: '後出しじゃんけん', jump: 'ジャンプでタッチ', tori: '森の小鳥', kotoba: '言葉づくり',
+  piano: 'ピアノ', sudoku: '絵合わせパズル', nanika: '何があった？', hako: '積み木数え'
 };
 const HELP_READ = {
   keisan: '式を見て、答えの数字をタッチしてね！',
@@ -55,12 +55,12 @@ const ONI_HELP_READ = {
   tori: '小鳥と蝶々を、どっちも数えてね！ 虫は数えないよ。',
   kotoba: '文字をタッチするたびに、文字の場所が変わるよ！',
   piano: '楽譜は、少し見たら消えるよ。覚えて弾いてね！',
-  sudoku: '六かける六の、大きい数独だよ！ 卵は六種類。部屋は横長だよ。'
+  sudoku: '六かける六の、大きいパズルだよ！ 卵は六種類。部屋は横長だよ。'
 };
 const ONI_HELP_A_READ = {
   keisan: '二桁の掛け算や、割り算も出るよ。できるだけ速く、答えてね！',
   sakki: '三つ前の絵を、選んでね！ 間の絵に、だまされないでね。',
-  sudoku: '一番難しい数独だよ！ あいてるマスが、とても多いよ。'
+  sudoku: '一番難しいパズルだよ！ あいてるマスが、とても多いよ。'
 };
 const ANIMAL_READ = { かたつむり: 'かたつむり', かめ: '亀', ペンギン: 'ペンギン', カンガルー: 'カンガルー', うま: '馬', チーター: 'チーター', はやぶさ: 'はやぶさ' };
 const WORD_READ = {
@@ -114,7 +114,7 @@ add('スタンプ ゲット！', 'スタンプ、ゲット！');
 add('はなまる スタンプ！', 'はなまるスタンプ！');
 ['ミミちゃん', 'ニャーちゃん', 'ワンちゃん'].forEach(n => add(n + 'が なかまに なったよ！', n + 'が、仲間になったよ！'));
 // training names (new training cards) and song names (new songs)
-const SOLO = T.list.filter(tr => tr.start);   // (はこ かぞえ is only played by two)
+const SOLO = T.list.filter(tr => tr.start);   // (つみき かぞえ is only played by two)
 SOLO.forEach(tr => add(tr.name, TRAINING_READ[tr.id]));
 Data.SONGS.forEach(g => add(g.name, SONG_READ[g.id]));
 // explanations of the trainings
@@ -126,7 +126,12 @@ add('きょうの あたまチェック！ 3つの テストを するよ', '今
 add('きょうは もう チェック したよ。 れんしゅうで やってみよう', '今日はもう、チェックしたよ。練習で、やってみよう。');
 Data.CHECK.forEach(c => c.tests.forEach(id => add('よく できました！ つぎは ' + T.byId[id].name, 'よくできました！ 次は、' + TRAINING_READ[id])));
 Data.ANIMALS.forEach(a => add('きょうの あたまは ' + a.name + '！', '今日の頭は、' + ANIMAL_READ[a.name] + '！'));
-for (let age = 20; age <= 80; age++) add('のうねんれいは ' + age + 'さい！', '脳年齢は、' + age + '歳！');
+// a grown-up's result: today against their own usual (no brain age), and a tip after a lower day
+add('いつもより いい ちょうし！', 'いつもより、いい調子！');
+add('いつもどおりの ちょうし', 'いつも通りの調子。');
+add('いつもより すこし ひくめ', 'いつもより、少し低め。');
+add('いつもの ちょうしを はかって いるよ', 'いつもの調子を、測っているよ。');
+add('ねむい ときや つかれた ときは ひくく なりやすいよ。きょうは はやめに やすもう', '眠い時や、疲れた時は、低くなりやすいよ。今日は、早めに休もう。');
 add(Data.CHECK[0].good, '速さが、得意だね！');
 add(Data.CHECK[1].good, '記憶が、得意だね！');
 add(Data.CHECK[2].good, '我慢が、得意だね！');
